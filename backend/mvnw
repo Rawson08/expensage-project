@@ -1,0 +1,158 @@
+#!/usr/bin/env sh
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# -----------------------------------------------------------------------------
+# Maven Wrapper startup script.
+#
+# Optional ENV vars
+# -----------------
+#   MAVEN_OPTS - parameters passed to the Java VM when running Maven
+#     e.g. -Xms256m -Xmx512m
+#   MAVEN_SKIP_RC - flag to disable loading of /etc/mavenrc and ~/.mavenrc
+#     e.g. MAVEN_SKIP_RC=true
+#
+#   Notice: In case of Cygwin, MAVEN_HOME and JAVA_HOME must be having Windows paths.
+# -----------------------------------------------------------------------------
+
+# Define MAVEN_PROJECT_BDIR - parent directory of the location of this script
+MAVEN_PROJECT_BDIR=$(cd "$(dirname "$0")" && pwd)
+
+# Use the maximum available, or set MAX_FD != -1 to use that value.
+MAX_FD=maximum
+# OS specific support. $var _must_ be set to either true or false.
+cygwin=false
+darwin=false
+mingw=false
+case "$(uname)" in
+  CYGWIN*) cygwin=true;;
+  Darwin*) darwin=true;;
+  MINGW*) mingw=true;;
+esac
+
+# For Cygwin, ensure paths are in UNIX format before anything is touched.
+if ${cygwin} ; then
+  [ -n "$MAVEN_HOME" ] && MAVEN_HOME=$(cygpath --unix "$MAVEN_HOME")
+  [ -n "$JAVA_HOME" ] && JAVA_HOME=$(cygpath --unix "$JAVA_HOME")
+fi
+
+# Read user specific configs
+# Notice: Below variables may be redefined in /etc/mavenrc or ~/.mavenrc
+MAVEN_OPTS="$MAVEN_OPTS"
+
+if [ -z "$MAVEN_SKIP_RC" ] ; then
+  if [ -f /etc/mavenrc ] ; then
+    . /etc/mavenrc
+  fi
+  if [ -f "$HOME/.mavenrc" ] ; then
+    . "$HOME/.mavenrc"
+  fi
+fi
+
+# Setup MAVEN_HOME
+if [ -z "$MAVEN_HOME" ] ; then
+  ## Try to find mvn in path
+  MAVEN_CMD=$(which mvn)
+  if [ -n "$MAVEN_CMD" ] ; then
+    MAVEN_HOME=$(cd "$(dirname "$MAVEN_CMD")/.." && pwd)
+  fi
+fi
+if [ -z "$MAVEN_HOME" ] ; then
+  echo "Error: MAVEN_HOME is not defined correctly."
+  exit 1
+fi
+
+# Setup JAVA_HOME
+if [ -z "$JAVA_HOME" ] ; then
+  ## Try to find java in path
+  JAVA_CMD=$(which java)
+  if [ -n "$JAVA_CMD" ] ; then
+    # resolve symlinks
+    while [ -h "$JAVA_CMD" ] ; do
+      ls=$(ls -ld "$JAVA_CMD")
+      # Drop everything prior to ->
+      link=$(expr "$ls" : '.*-> \(.*\)$')
+      if expr "$link" : '/.*' > /dev/null; then
+        JAVA_CMD="$link"
+      else
+        JAVA_CMD=$(dirname "$JAVA_CMD")/"$link"
+      fi
+    done
+    JAVA_HOME=$(cd "$(dirname "$JAVA_CMD")/.." && pwd)
+  fi
+fi
+if [ -z "$JAVA_HOME" ] ; then
+  echo "Error: JAVA_HOME is not defined correctly."
+  exit 1
+fi
+
+# For Cygwin, switch paths to Windows format before running java
+if ${cygwin} ; then
+  MAVEN_HOME=$(cygpath --path --windows "$MAVEN_HOME")
+  JAVA_HOME=$(cygpath --path --windows "$JAVA_HOME")
+  MAVEN_PROJECT_BDIR=$(cygpath --path --windows "$MAVEN_PROJECT_BDIR")
+  MAVEN_OPTS=$(cygpath --path --windows "$MAVEN_OPTS")
+fi
+
+# Increase the maximum number of open file descriptors
+# Reference https://issues.apache.org/jira/browse/MNG-1528
+# Reference http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6458480
+if [ "$MAX_FD" != "-1" ] ; then
+  MAX_FD_LIMIT=$(ulimit -H -n)
+  if [ "$?" -eq 0 ] ; then
+    # Darwin does not allow RLIMIT_INFINITY on ulimit -n
+    # Reference https://issues.apache.org/jira/browse/MNG-6203
+    if [ "$darwin" = "true" ] && [ "$MAX_FD_LIMIT" = "unlimited" ] ; then
+      MAX_FD_LIMIT=10240
+    fi
+    if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ] ; then
+      MAX_FD="$MAX_FD_LIMIT"
+    fi
+    ulimit -n $MAX_FD
+    if [ "$?" -ne 0 ] ; then
+      echo "Could not set maximum file descriptor limit: $MAX_FD"
+    fi
+  else
+    echo "Could not query maximum file descriptor limit: $MAX_FD_LIMIT"
+  fi
+fi
+
+# Add maven project classpath
+MAVEN_PROJECT_CP=$MAVEN_PROJECT_BDIR/.mvn/wrapper/maven-wrapper.jar
+if [ -f "$MAVEN_PROJECT_BDIR/.mvn/wrapper/maven-wrapper-override.properties" ] ; then
+  MAVEN_PROJECT_CP=$MAVEN_PROJECT_BDIR/.mvn/wrapper/maven-wrapper-override.jar
+fi
+
+# Provide a "standardized" way to retrieve the CLI args that will
+# work with both Windows and non-Windows executions.
+MAVEN_CMD_LINE_ARGS=""
+for ((i = 1; i <= $#; i++ )); do
+    arg="${@:$i:1}"
+    # if the arg contains whitespace, wrap it in double quotes
+    if [[ "$arg" =~ \ |\' ]] ; then
+        arg="\"$arg\""
+    fi
+    MAVEN_CMD_LINE_ARGS="$MAVEN_CMD_LINE_ARGS $arg"
+done
+
+# Execute Maven
+exec "$JAVA_HOME/bin/java" \
+  $MAVEN_OPTS \
+  -classpath "$MAVEN_PROJECT_CP" \
+  "-Dmaven.home=${MAVEN_HOME}" \
+  "-Dmaven.multiModuleProjectDirectory=${MAVEN_PROJECT_BDIR}" \
+  org.apache.maven.wrapper.MavenWrapperMain \
+  $MAVEN_CMD_LINE_ARGS

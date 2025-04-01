@@ -1,0 +1,37 @@
+.idea/
+*.iml
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+
+# Build outputs
+target/
+dist/
+build/
+out/
+
+# Dependency directories
+node_modules/
+frontend/node_modules/
+
+# Log files
+*.log
+logs/
+dev.log
+
+.env*
+!.env.example
+!.env.development
+!.env.production
+backend/src/main/resources/application.properties
+backend/src/main/resources/json/*.json
+docker-compose.yml
+.DS_Store
+Thumbs.db
+
+backend/.mvn/wrapper/maven-wrapper.jar
+
+*.swp
+*~

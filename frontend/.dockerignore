@@ -1,0 +1,21 @@
+# Ignore Node dependency directory
+node_modules/
+# Ignore build output directory
+dist/
+# Ignore IDE files
+.idea/
+*.iml
+.vscode/
+# Ignore Git files
+.git/
+.gitignore
+# Ignore OS files
+.DS_Store
+Thumbs.db
+# Ignore log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Ignore environment variable files (if any)
+.env*
