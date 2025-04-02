@@ -70,21 +70,25 @@ const GroupDetailPage: React.FC = () => {
              throw new Error("Invalid Group ID format.");
         }
 
+        // Fetch group details (which now includes payments)
         const groupPromise = apiClient.get<GroupResponseDto>(`/groups/${numericGroupId}`);
         const balancesPromise = getGroupBalances(numericGroupId);
-        const transactionsPromise = getGroupTransactions(numericGroupId);
+        // We still fetch transactions for expenses, but payments come from groupPromise
+        const transactionsPromise = getGroupTransactions(numericGroupId); 
 
         const [groupResponse, balancesResponse, transactionsResponse] = await Promise.all([
             groupPromise,
             balancesPromise,
-            transactionsPromise
+            transactionsPromise // Keep fetching transactions for expenses
         ]);
 
+        // Sort transactions (expenses) by date
         transactionsResponse.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        setGroup(groupResponse.data);
+        setGroup(groupResponse.data); // Group data now includes payments
         setGroupBalances(balancesResponse);
-        setTransactions(transactionsResponse);
+        // Filter transactions to only include expenses, as payments are now in group.payments
+        setTransactions(transactionsResponse); // Store all transactions
 
       } catch (err: any) {
         console.error("Failed to fetch group data:", err);
@@ -286,9 +290,14 @@ const GroupDetailPage: React.FC = () => {
   const isLastMember = group.members.length <= 1;
   const isCreator = user?.id === group.creator?.id;
 
-  const expensesOnly = transactions.filter(isExpense);
+  // Use transactions state for expenses
+  const expensesOnly = transactions; 
+  // Ensure group.payments exists before accessing it
+  const paymentsOnly = group?.payments || []; 
 
   let lastRenderedMonthYear: string | null = null;
+  // Initialize payment month tracker
+  let lastRenderedPaymentMonthYear: string | null = null; 
 
   const getModalContent = () => {
         if (!confirmData) return { title: '', message: '', confirmText: 'Confirm' };
@@ -381,6 +390,8 @@ const GroupDetailPage: React.FC = () => {
         {!isLoading && !error && expensesOnly.length > 0 && (
               <ul className="divide-y divide-gray-200">
                 {expensesOnly.map((expense, index) => {
+                    // Add type guard check inside map
+                    if (!isExpense(expense)) return null;
                     const youPaid = calculateUserPaidAmount(expense.payers || []);
                     const youLent = calculateUserLentAmount(expense);
                     const lentAmountDisplay = youLent >= 0 ? youLent : 0;
@@ -457,6 +468,72 @@ const GroupDetailPage: React.FC = () => {
           )}
         </div>
 
+        {/* Payments List */}
+        <div className="bg-white shadow rounded-lg mb-6">
+            <h3 className="text-lg font-semibold mb-0 p-4 border-b">Payments</h3>
+            {/* Use isLoading state for payments too */}
+            {isLoading && <p className="p-4 text-gray-500">Loading payments...</p>} 
+            {!error && paymentsOnly.length === 0 && !isLoading && (
+                <p className="p-4 text-gray-500">No payments recorded in this group yet.</p>
+            )}
+            {!isLoading && !error && paymentsOnly.length > 0 && (
+                <ul className="divide-y divide-gray-200">
+                    {paymentsOnly
+                        // Add explicit types for sort parameters
+                        .sort((a: PaymentResponseDto, b: PaymentResponseDto) => new Date(b.date).getTime() - new Date(a.date).getTime()) 
+                        // Add explicit types for map parameters
+                        .map((payment: PaymentResponseDto, index: number) => { 
+                            const paymentDate = new Date(payment.date + 'T00:00:00');
+                            const currentPaymentMonthYear = `${paymentDate.getFullYear()}-${paymentDate.getMonth()}`;
+
+                            // Check index === 0 first to prevent comparing null with string
+                            const showPaymentMonthHeader = index === 0 || (lastRenderedPaymentMonthYear !== null && lastRenderedPaymentMonthYear !== currentPaymentMonthYear);
+                            // Assign after comparison
+                            lastRenderedPaymentMonthYear = currentPaymentMonthYear; 
+
+                            // Define the list item JSX in a variable
+                            const paymentListItem = ( 
+                                <li key={`payment-${payment.id}`} className="flex items-center px-4 py-3">
+                                    {/* Date Column */}
+                                    <div className="w-10 text-center mr-2 flex-shrink-0">
+                                        <p className="text-xs uppercase text-gray-500">{paymentDate.toLocaleString('default', { month: 'short' })}</p>
+                                        <p className="text-base font-medium text-gray-700">{paymentDate.getDate()}</p>
+                                    </div>
+                                    {/* Icon & Description Column */}
+                                    <div className="flex-grow flex items-center mr-3 overflow-hidden">
+                                        {/* Placeholder Payment Icon */}
+                                        <svg className="w-5 h-5 text-blue-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        <p className="font-medium text-sm text-gray-800 truncate" title={`${payment.paidBy.name} paid ${payment.paidTo.name}`}>
+                                            {payment.paidBy.id === user?.id ? 'You' : payment.paidBy.name} paid {payment.paidTo.id === user?.id ? 'You' : payment.paidTo.name}
+                                        </p>
+                                    </div>
+                                    {/* Amount Column */}
+                                    <div className="flex flex-col text-right w-20 flex-shrink-0">
+                                        <p className="text-sm font-medium text-blue-600 leading-tight">{formatCurrency(payment.amount, payment.currency)}</p>
+                                    </div>
+                                </li>
+                            );
+
+                            // Explicitly return the JSX based on the condition
+                            if (showPaymentMonthHeader) { 
+                                return (
+                                    <React.Fragment key={`payment-month-${currentPaymentMonthYear}`}>
+                                        <li className="bg-gray-100 px-4 py-1 mt-4 border-t border-b">
+                                            <p className="text-sm font-semibold text-gray-600">
+                                                {paymentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                            </p>
+                                        </li>
+                                        {paymentListItem}
+                                    </React.Fragment>
+                                );
+                            } else {
+                                return paymentListItem; 
+                            }
+                        })} 
+                </ul>
+            )}
+        </div>
+
         {/* Delete Group Button */}
         {isCreator && (
             <div className="mt-8 flex justify-end">
@@ -504,62 +581,68 @@ const GroupDetailPage: React.FC = () => {
                 <div className="relative mx-auto p-1 border w-full max-w-md shadow-lg rounded-md bg-white">
                      <div className="p-4">
                         <AddPaymentForm
-                            groupId={group.id}
-                            groupMembers={group.members}
                             onPaymentSaved={handlePaymentSaved}
                             onCancel={() => { setShowAddPaymentForm(false); setEditingPayment(null); }}
+                            groupId={group.id}
+                            groupMembers={group.members}
                             initialData={editingPayment}
                         />
                      </div>
                 </div>
             </div>
        )}
-       {/* Notes Modal (Separate - can be removed if detail modal handles notes) */}
-       {/* {showNotesModal && ( ... )} */} {/* Commented out separate notes modal */}
-
-        {/* Confirmation Modal */}
-        <ConfirmationModal
+       {/* Confirmation Modal */}
+       <ConfirmationModal
             isOpen={isConfirmModalOpen}
             onClose={closeConfirmModal}
             onConfirm={executeConfirmAction}
             title={modalContent.title}
             message={modalContent.message}
             confirmButtonText={modalContent.confirmText}
-        />
-
-        {/* Expense Detail Modal */}
-        {isDetailModalOpen && selectedExpense && (
-             <div className="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-30 flex items-center justify-center" onClick={closeDetailModal}>
-                 <div className="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white" onClick={(e) => e.stopPropagation()}>
-                     <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Expense Details: {selectedExpense.description}</h3>
-                     <div className="space-y-2 text-sm text-gray-700 max-h-96 overflow-y-auto pr-2">
-                         <p><strong>Date:</strong> {selectedExpense.date}</p>
-                         <p><strong>Amount:</strong> {formatCurrency(selectedExpense.amount, selectedExpense.currency)}</p>
-                         <p><strong>Paid By:</strong> {getPayerString(selectedExpense.payers)}</p>
-                         <p><strong>Split Type:</strong> {selectedExpense.splitType}</p>
-                         <div>
-                             <strong>Splits:</strong>
-                             <ul className='list-disc list-inside pl-4 text-sm'>
-                                {(selectedExpense.splits || []).map(split => (
-                                    <li key={split.splitId}>
-                                        {split.owedBy?.name || 'Unknown User'} owes {formatCurrency(split.amountOwed, selectedExpense.currency)}
-                                    </li>
-                                ))}
-                             </ul>
-                         </div>
-                         <p><strong>Notes:</strong> {selectedExpense.notes || 'N/A'}</p>
-                         {selectedExpense.receiptUrl && <p><a href={selectedExpense.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Receipt</a></p>}
-                     </div>
-
-                     <div className="mt-6 flex justify-end space-x-3 border-t pt-4">
-                          <button onClick={() => handleEditExpenseClick(selectedExpense)} className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600">Edit</button>
-                          <button onClick={() => handleDeleteExpenseClick(selectedExpense.id)} className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700">Delete</button>
-                          <button onClick={closeDetailModal} className="px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-300">Close</button>
-                     </div>
-                 </div>
-             </div>
+       />
+       {/* Expense Detail Modal */}
+       {isDetailModalOpen && selectedExpense && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-20 flex items-center justify-center">
+                <div className="relative mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
+                    <h3 className="text-xl font-semibold mb-4">Expense Details</h3>
+                    <div className="space-y-3 text-sm">
+                        <p><strong>Description:</strong> {selectedExpense.description}</p>
+                        <p><strong>Amount:</strong> {formatCurrency(selectedExpense.amount, selectedExpense.currency)}</p>
+                        <p><strong>Date:</strong> {new Date(selectedExpense.date + 'T00:00:00').toLocaleDateString()}</p>
+                        <p><strong>Paid by:</strong> {getPayerString(selectedExpense.payers)}</p>
+                        <p><strong>Split:</strong> {selectedExpense.splitType}</p>
+                        {selectedExpense.splits && selectedExpense.splits.length > 0 && (
+                            <div>
+                                <strong>Split Details:</strong>
+                                <ul className="list-disc pl-5">
+                                    {selectedExpense.splits.map(split => (
+                                        <li key={split.splitId}>
+                                            {split.owedBy.name}: {formatCurrency(split.amountOwed, selectedExpense.currency)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {selectedExpense.notes && <p><strong>Notes:</strong> {selectedExpense.notes}</p>}
+                        {selectedExpense.receiptUrl && (
+                            <p><strong>Receipt:</strong> <a href={selectedExpense.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Receipt</a></p>
+                        )}
+                        <p><strong>Added on:</strong> {new Date(selectedExpense.createdAt).toLocaleString()}</p>
+                    </div>
+                    <div className="flex justify-end space-x-3 mt-6">
+                        <button onClick={() => handleEditExpenseClick(selectedExpense)} className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                            Edit
+                        </button>
+                        <button onClick={() => handleDeleteExpenseClick(selectedExpense.id)} className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                            Delete
+                        </button>
+                        <button onClick={closeDetailModal} className="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
         )}
-
     </div>
   );
 };

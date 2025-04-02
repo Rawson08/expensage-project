@@ -27,6 +27,7 @@ export interface GroupResponseDto {
   createdAt: string;
   creator: UserResponse;
   members: UserResponse[];
+  payments: PaymentResponseDto[]; // Added payments list
 }
 
 export interface GroupCreateRequest {

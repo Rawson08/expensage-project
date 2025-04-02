@@ -1,6 +1,7 @@
 package com.expensesage.dto;
 
 import java.time.LocalDateTime;
+import java.util.List; // Added
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -16,4 +17,5 @@ public class GroupResponseDto {
     private LocalDateTime createdAt;
     private UserResponse creator; // Added creator field
     private Set<UserResponse> members;
+    private List<PaymentResponseDto> payments; // Added payments list
 }
