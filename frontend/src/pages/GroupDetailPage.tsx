@@ -6,8 +6,10 @@ import { deleteExpense } from '../services/expenseService';
 import { deletePayment } from '../services/paymentService';
 import { getGroupBalances } from '../services/balanceService';
 import { getGroupTransactions, leaveGroup, deleteGroup } from '../services/groupService';
-// Removed unused SplitResponseDto, UserResponse from direct import
-import { GroupResponseDto, ExpenseResponseDto, BalanceDto, PaymentResponseDto, TransactionDto, PayerResponseDto } from '../types/api';
+// Import comment service functions
+import { getCommentsForExpense, addCommentToExpense, deleteComment } from '../services/commentService'; 
+// Import comment types
+import { GroupResponseDto, ExpenseResponseDto, BalanceDto, PaymentResponseDto, TransactionDto, PayerResponseDto, CommentResponseDto, CommentCreateRequest } from '../types/api'; 
 import AddExpenseForm from '../components/AddExpenseForm';
 import AddMemberForm from '../components/AddMemberForm';
 import AddPaymentForm from '../components/AddPaymentForm';
@@ -21,10 +23,13 @@ const PlaceholderIcon = () => (
     </svg>
 );
 
-type ConfirmActionType = 'delete_expense' | 'delete_payment' | 'leave_group' | 'delete_group';
+// Add delete_comment type
+type ConfirmActionType = 'delete_expense' | 'delete_payment' | 'leave_group' | 'delete_group' | 'delete_comment'; 
 interface ConfirmData {
     id?: number;
     type: ConfirmActionType;
+    // Optional: Add extra data if needed, e.g., for comment deletion confirmation message
+    itemName?: string; 
 }
 
 // Type guard function using the 'type' property
@@ -47,13 +52,17 @@ const GroupDetailPage: React.FC = () => {
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseResponseDto | null>(null);
   const [editingPayment, setEditingPayment] = useState<PaymentResponseDto | null>(null);
-  // Removed state for separate notes modal
-  // const [showNotesModal, setShowNotesModal] = useState(false);
-  // const [noteToShow, setNoteToShow] = useState<string | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmData, setConfirmData] = useState<ConfirmData | null>(null);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseResponseDto | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // State for comments within the detail modal
+  const [comments, setComments] = useState<CommentResponseDto[]>([]);
+  const [isCommentsLoading, setIsCommentsLoading] = useState<boolean>(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [newCommentContent, setNewCommentContent] = useState<string>('');
+  const [isPostingComment, setIsPostingComment] = useState<boolean>(false);
 
 
   const fetchGroupData = useCallback(async () => {
@@ -87,8 +96,8 @@ const GroupDetailPage: React.FC = () => {
 
         setGroup(groupResponse.data); // Group data now includes payments
         setGroupBalances(balancesResponse);
-        // Filter transactions to only include expenses, as payments are now in group.payments
-        setTransactions(transactionsResponse); // Store all transactions
+        // Store all transactions
+        setTransactions(transactionsResponse); 
 
       } catch (err: any) {
         console.error("Failed to fetch group data:", err);
@@ -140,18 +149,18 @@ const GroupDetailPage: React.FC = () => {
   const handleEditExpenseClick = (expense: ExpenseResponseDto) => {
       setEditingExpense(expense);
       setShowAddExpenseForm(true);
-      setIsDetailModalOpen(false);
+      setIsDetailModalOpen(false); // Close detail modal when opening edit form
   };
 
   // Called from Detail Modal Delete button
   const handleDeleteExpenseClick = (expenseId: number) => {
       openConfirmModal('delete_expense', expenseId);
-      setIsDetailModalOpen(false);
+      setIsDetailModalOpen(false); // Close detail modal when opening confirm modal
   };
 
   // --- Confirmation Modal Logic ---
-  const openConfirmModal = (type: ConfirmActionType, id?: number) => {
-        setConfirmData({ id, type });
+  const openConfirmModal = (type: ConfirmActionType, id?: number, itemName?: string) => { // Added itemName
+        setConfirmData({ id, type, itemName });
         setIsConfirmModalOpen(true);
     };
 
@@ -174,6 +183,13 @@ const GroupDetailPage: React.FC = () => {
             } else if (type === 'delete_payment' && id !== undefined) {
                 await deletePayment(id);
                 successMessage = "Payment deleted successfully";
+            } else if (type === 'delete_comment' && id !== undefined) { // Handle comment deletion
+                await deleteComment(id);
+                successMessage = "Comment deleted successfully";
+                // Refetch comments for the currently selected expense if modal is open
+                if (selectedExpense) {
+                    fetchCommentsForExpense(selectedExpense.id); 
+                }
             } else if (type === 'leave_group' && user?.id !== undefined) {
                 await leaveGroup(numericGroupId, user.id);
                 successMessage = "Successfully left group";
@@ -187,29 +203,82 @@ const GroupDetailPage: React.FC = () => {
             if (successMessage) {
                 toast.success(successMessage);
             }
-            if (type !== 'leave_group' && type !== 'delete_group') {
-                fetchGroupData(); // Refetch data after successful action
+            // Refetch group data only if the action wasn't leaving/deleting group or deleting comment
+            if (type !== 'leave_group' && type !== 'delete_group' && type !== 'delete_comment') { 
+                fetchGroupData(); 
             }
         } catch (err: any) {
             const errorMsg = `Failed to ${type.replace('_', ' ')}: ${err.message || 'Unknown error'}`;
-            setError(errorMsg);
+            setError(errorMsg); // Maybe use commentError for comment deletion?
             toast.error(errorMsg);
             console.error(`Failed to ${type}:`, err);
+        } finally {
+            closeConfirmModal(); // Close modal after action attempt
         }
     };
     // --- End Confirmation Modal Logic ---
 
   // --- Expense Detail Modal Logic ---
+  const fetchCommentsForExpense = async (expenseId: number) => {
+      setIsCommentsLoading(true);
+      setCommentError(null);
+      try {
+          const fetchedComments = await getCommentsForExpense(expenseId);
+          setComments(fetchedComments);
+      } catch (err: any) {
+          console.error("Failed to fetch comments:", err);
+          setCommentError(err.message || "Could not load comments.");
+          setComments([]); // Clear comments on error
+      } finally {
+          setIsCommentsLoading(false);
+      }
+  };
+
   const openDetailModal = (expense: ExpenseResponseDto) => {
       setSelectedExpense(expense);
       setIsDetailModalOpen(true);
+      fetchCommentsForExpense(expense.id); // Fetch comments when modal opens
   };
 
   const closeDetailModal = () => {
       setIsDetailModalOpen(false);
       setSelectedExpense(null);
+      // Reset comment state on close
+      setComments([]);
+      setIsCommentsLoading(false);
+      setCommentError(null);
+      setNewCommentContent('');
+      setIsPostingComment(false);
   };
   // --- End Expense Detail Modal Logic ---
+
+  // --- Comment Handling Logic ---
+  const handleAddComment = async () => {
+      if (!newCommentContent.trim() || !selectedExpense) return;
+
+      setIsPostingComment(true);
+      setCommentError(null);
+      const commentData: CommentCreateRequest = { content: newCommentContent };
+
+      try {
+          const addedComment = await addCommentToExpense(selectedExpense.id, commentData);
+          setComments(prevComments => [...prevComments, addedComment]); // Add to state
+          setNewCommentContent(''); // Clear input
+          toast.success("Comment added!");
+      } catch (err: any) {
+          console.error("Failed to add comment:", err);
+          setCommentError(err.message || "Failed to post comment.");
+          toast.error(commentError || "Failed to post comment.");
+      } finally {
+          setIsPostingComment(false);
+      }
+  };
+
+  const handleDeleteCommentClick = (commentId: number) => {
+      // Use the confirmation modal for deleting comments
+      openConfirmModal('delete_comment', commentId, 'this comment'); 
+  };
+  // --- End Comment Handling Logic ---
 
 
   const handleLeaveGroup = () => {
@@ -221,9 +290,6 @@ const GroupDetailPage: React.FC = () => {
       if (!groupId) return;
       openConfirmModal('delete_group');
   };
-
-  // Removed unused handleShowNotes function
-  // const handleShowNotes = (notes: string | null | undefined) => { ... };
 
 
   const formatCurrency = (amount: number | null | undefined, currencyCode: string = 'USD') => {
@@ -291,7 +357,7 @@ const GroupDetailPage: React.FC = () => {
   const isCreator = user?.id === group.creator?.id;
 
   // Use transactions state for expenses
-  const expensesOnly = transactions; 
+  const expensesOnly = transactions.filter(isExpense); 
   // Ensure group.payments exists before accessing it
   const paymentsOnly = group?.payments || []; 
 
@@ -301,12 +367,14 @@ const GroupDetailPage: React.FC = () => {
 
   const getModalContent = () => {
         if (!confirmData) return { title: '', message: '', confirmText: 'Confirm' };
-        const { type } = confirmData;
+        const { type, itemName } = confirmData; // Added itemName
         switch (type) {
             case 'delete_expense':
                 return { title: 'Delete Expense', message: 'Are you sure you want to delete this expense?', confirmText: 'Delete' };
             case 'delete_payment':
                 return { title: 'Delete Payment', message: 'Are you sure you want to delete this payment record?', confirmText: 'Delete' };
+            case 'delete_comment': // Added case for comment deletion
+                return { title: 'Delete Comment', message: `Are you sure you want to delete ${itemName || 'this comment'}?`, confirmText: 'Delete' };
             case 'leave_group':
                 return { title: 'Leave Group', message: 'Are you sure you want to leave this group? You cannot rejoin unless invited back.', confirmText: 'Leave' };
             case 'delete_group':
@@ -391,7 +459,7 @@ const GroupDetailPage: React.FC = () => {
               <ul className="divide-y divide-gray-200">
                 {expensesOnly.map((expense, index) => {
                     // Add type guard check inside map
-                    if (!isExpense(expense)) return null;
+                    if (!isExpense(expense)) return null; 
                     const youPaid = calculateUserPaidAmount(expense.payers || []);
                     const youLent = calculateUserLentAmount(expense);
                     const lentAmountDisplay = youLent >= 0 ? youLent : 0;
@@ -603,9 +671,10 @@ const GroupDetailPage: React.FC = () => {
        {/* Expense Detail Modal */}
        {isDetailModalOpen && selectedExpense && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-20 flex items-center justify-center">
-                <div className="relative mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
+                {/* Increased max-w- for more space */}
+                <div className="relative mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white"> 
                     <h3 className="text-xl font-semibold mb-4">Expense Details</h3>
-                    <div className="space-y-3 text-sm">
+                    <div className="space-y-3 text-sm mb-6 max-h-[30vh] overflow-y-auto pr-2"> {/* Added max-height and scroll */}
                         <p><strong>Description:</strong> {selectedExpense.description}</p>
                         <p><strong>Amount:</strong> {formatCurrency(selectedExpense.amount, selectedExpense.currency)}</p>
                         <p><strong>Date:</strong> {new Date(selectedExpense.date + 'T00:00:00').toLocaleDateString()}</p>
@@ -629,12 +698,66 @@ const GroupDetailPage: React.FC = () => {
                         )}
                         <p><strong>Added on:</strong> {new Date(selectedExpense.createdAt).toLocaleString()}</p>
                     </div>
-                    <div className="flex justify-end space-x-3 mt-6">
+
+                    {/* Comments Section */}
+                    <div className="border-t pt-4">
+                        <h4 className="text-lg font-semibold mb-3">Comments</h4>
+                        {isCommentsLoading && <p className="text-gray-500">Loading comments...</p>}
+                        {commentError && <p className="text-red-500 text-sm mb-2">Error: {commentError}</p>}
+                        
+                        <div className="space-y-3 mb-4 max-h-[25vh] overflow-y-auto pr-2"> {/* Scrollable comment list */}
+                            {comments.length === 0 && !isCommentsLoading && (
+                                <p className="text-gray-500 text-sm">No comments yet.</p>
+                            )}
+                            {comments.map(comment => (
+                                <div key={comment.id} className="text-sm border-b pb-2 last:border-b-0">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="font-semibold">{comment.author.id === user?.id ? 'You' : comment.author.name}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {new Date(comment.createdAt).toLocaleString()}
+                                            {comment.author.id === user?.id && (
+                                                <button 
+                                                    onClick={() => handleDeleteCommentClick(comment.id)} 
+                                                    className="ml-2 text-red-500 hover:text-red-700 text-xs"
+                                                    title="Delete comment"
+                                                >
+                                                    (Delete)
+                                                </button>
+                                            )}
+                                        </span>
+                                    </div>
+                                    <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p> 
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Add Comment Form */}
+                        <div className="mt-4">
+                            <textarea
+                                value={newCommentContent}
+                                onChange={(e) => setNewCommentContent(e.target.value)}
+                                placeholder="Add a comment..."
+                                rows={2}
+                                className="w-full p-2 border rounded focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                disabled={isPostingComment}
+                            />
+                            <button
+                                onClick={handleAddComment}
+                                disabled={isPostingComment || !newCommentContent.trim()}
+                                className="mt-2 px-4 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                            >
+                                {isPostingComment ? 'Posting...' : 'Post Comment'}
+                            </button>
+                        </div>
+                    </div>
+                    {/* End Comments Section */}
+
+                    <div className="flex justify-end space-x-3 mt-6 border-t pt-4"> {/* Added border-t and pt-4 */}
                         <button onClick={() => handleEditExpenseClick(selectedExpense)} className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                            Edit
+                            Edit Expense
                         </button>
                         <button onClick={() => handleDeleteExpenseClick(selectedExpense.id)} className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
-                            Delete
+                            Delete Expense
                         </button>
                         <button onClick={closeDetailModal} className="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
                             Close

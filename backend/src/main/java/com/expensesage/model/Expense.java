@@ -3,7 +3,9 @@ package com.expensesage.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashSet; // Added
+import java.util.List; // Added
 import java.util.Objects;
 import java.util.Set;
 
@@ -82,6 +84,10 @@ public class Expense {
     // Relationship to Splits
     @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Split> splits = new HashSet<>();
+ 
+    // Relationship to Comments
+    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
 
     // Helper methods for managing relationships
     public void addPayer(ExpensePayer payer) {
@@ -131,6 +137,7 @@ public class Expense {
                 ", groupId=" + (group != null ? group.getId() : null) +
                 ", numberOfPayers=" + (payers != null ? payers.size() : 0) +
                 ", numberOfSplits=" + (splits != null ? splits.size() : 0) +
+                ", numberOfComments=" + (comments != null ? comments.size() : 0) + // Added comment count
                 '}';
      }
 }

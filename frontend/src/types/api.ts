@@ -137,3 +137,17 @@ export interface PaymentResponseDto extends BaseTransactionDto {
 
 // Union type for combined transaction list
 export type TransactionDto = ExpenseResponseDto | PaymentResponseDto;
+
+// --- Comment Types ---
+
+export interface CommentCreateRequest {
+    content: string;
+}
+
+export interface CommentResponseDto {
+    id: number;
+    content: string;
+    createdAt: string; // Assuming ISO string format
+    author: UserResponse;
+    expenseId: number;
+}
