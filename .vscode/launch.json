@@ -1,0 +1,29 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "EmailTest",
+      "request": "launch",
+      "mainClass": "com.expensesage.EmailTest",
+      "projectName": "expensesage"
+    },
+    {
+      "type": "java",
+      "name": "Current File",
+      "request": "launch",
+      "mainClass": "${file}"
+    },
+    {
+      "type": "java",
+      "name": "ExpenseSageApplication",
+      "request": "launch",
+      "mainClass": "com.expensesage.ExpenseSageApplication",
+      "projectName": "expensesage",
+      "vmArgs": "--add-opens java.base/java.lang.invoke=ALL-UNNAMED"
+    }
+  ]
+}

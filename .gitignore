@@ -1,10 +1,10 @@
+# IDE files
 .idea/
 *.iml
 *.iws
 .classpath
 .project
 .settings/
-.vscode/
 
 # Build outputs
 target/
@@ -21,17 +21,20 @@ frontend/node_modules/
 logs/
 dev.log
 
+# Environment variables / Secrets
 .env*
 !.env.example
-!.env.development
-!.env.production
 backend/src/main/resources/application.properties
 backend/src/main/resources/json/*.json
 docker-compose.yml
+
+# OS generated files
 .DS_Store
 Thumbs.db
 
+# Maven wrapper JAR (ignore only the JAR, not the whole dir)
 backend/.mvn/wrapper/maven-wrapper.jar
 
+# Other
 *.swp
 *~
