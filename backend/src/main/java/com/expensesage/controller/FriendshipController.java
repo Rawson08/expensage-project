@@ -67,8 +67,15 @@ public class FriendshipController {
         try {
             User currentUser = getCurrentUser();
             Friendship friendship = friendshipService.sendFriendRequest(currentUser, request.getRecipientEmail());
-            return ResponseEntity.status(HttpStatus.CREATED).body(friendshipMapper.toFriendshipResponseDto(friendship, currentUser));
-        } catch (RuntimeException e) {
+
+            if (friendship != null) {
+                // Friend request created successfully
+                return ResponseEntity.status(HttpStatus.CREATED).body(friendshipMapper.toFriendshipResponseDto(friendship, currentUser));
+            } else {
+                // Invitation email sent (user didn't exist)
+                return ResponseEntity.accepted().build(); // Return 202 Accepted
+            }
+        } catch (RuntimeException e) { // Catch RuntimeException (includes IllegalArgumentException)
             logger.warn("Failed to send friend request: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

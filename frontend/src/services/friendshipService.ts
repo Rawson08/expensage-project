@@ -31,12 +31,20 @@ export const getOutgoingRequests = async (): Promise<FriendshipResponseDto[]> =>
     }
 };
 
-// Send a friend request
-export const sendFriendRequest = async (recipientEmail: string): Promise<FriendshipResponseDto> => {
+// Send a friend request or trigger an invitation
+export const sendFriendRequest = async (recipientEmail: string): Promise<FriendshipResponseDto | null> => {
     try {
         const payload: FriendRequestDto = { recipientEmail };
-        const response = await apiClient.post<FriendshipResponseDto>('/friendships/requests', payload);
-        return response.data;
+        // Use full response to check status code
+        const response = await apiClient.post<FriendshipResponseDto>('/friendships/requests', payload, { validateStatus: (status) => status >= 200 && status < 300 });
+
+        if (response.status === 201) { // 201 Created: Friend request sent
+            return response.data;
+        } else if (response.status === 202) { // 202 Accepted: Invitation email sent
+            return null; // Indicate invitation was sent
+        }
+        // Should not happen with validateStatus, but as a fallback
+        throw new Error(`Unexpected success status: ${response.status}`);
     } catch (error: any) {
         throw error.response?.data || new Error('Failed to send friend request');
     }

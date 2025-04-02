@@ -17,6 +17,7 @@ import com.expensesage.model.User; // Ensure BalanceDto is imported
 import com.expensesage.repository.FriendshipRepository;
 import com.expensesage.repository.UserRepository;
 import com.expensesage.service.BalanceService;
+import com.expensesage.service.EmailService; // Added EmailService import
 import com.expensesage.service.FriendshipService;
 
 @Service
@@ -27,12 +28,14 @@ public class FriendshipServiceImpl implements FriendshipService {
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
     private final BalanceService balanceService;
+    private final EmailService emailService; // Added EmailService field
 
     @Autowired
-    public FriendshipServiceImpl(FriendshipRepository friendshipRepository, UserRepository userRepository, BalanceService balanceService) {
+    public FriendshipServiceImpl(FriendshipRepository friendshipRepository, UserRepository userRepository, BalanceService balanceService, EmailService emailService) { // Added EmailService to constructor
         this.friendshipRepository = friendshipRepository;
         this.userRepository = userRepository;
         this.balanceService = balanceService;
+        this.emailService = emailService; // Initialize EmailService
     }
 
     @Override
@@ -42,31 +45,39 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new IllegalArgumentException("Cannot send a friend request to yourself.");
         }
 
-        User recipient = userRepository.findByEmail(recipientEmail)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + recipientEmail));
+        Optional<User> recipientOpt = userRepository.findByEmail(recipientEmail);
 
-        Optional<Friendship> existingFriendship = friendshipRepository.findFriendshipBetweenUsers(requester, recipient);
-        if (existingFriendship.isPresent()) {
-            Friendship fs = existingFriendship.get();
-            if (fs.getStatus() == FriendshipStatus.ACCEPTED) {
-                throw new RuntimeException("You are already friends with this user.");
-            } else if (fs.getStatus() == FriendshipStatus.PENDING) {
-                if (fs.getActionUserId() != null && fs.getActionUserId().equals(requester.getId())) {
-                    throw new RuntimeException("Friend request already sent to this user.");
-                } else {
-                    throw new RuntimeException("This user has already sent you a friend request.");
+        if (recipientOpt.isPresent()) {
+            // User exists, proceed with friend request logic
+            User recipient = recipientOpt.get();
+            Optional<Friendship> existingFriendship = friendshipRepository.findFriendshipBetweenUsers(requester, recipient);
+            if (existingFriendship.isPresent()) {
+                Friendship fs = existingFriendship.get();
+                if (fs.getStatus() == FriendshipStatus.ACCEPTED) {
+                    throw new RuntimeException("You are already friends with this user.");
+                } else if (fs.getStatus() == FriendshipStatus.PENDING) {
+                    if (fs.getActionUserId() != null && fs.getActionUserId().equals(requester.getId())) {
+                        throw new RuntimeException("Friend request already sent to this user.");
+                    } else {
+                        throw new RuntimeException("This user has already sent you a friend request.");
+                    }
                 }
             }
+
+            Friendship newRequest = new Friendship();
+            newRequest.setUser1(requester);
+            newRequest.setUser2(recipient);
+            newRequest.setStatus(FriendshipStatus.PENDING);
+            newRequest.setActionUserId(requester.getId());
+
+            logger.info("User {} sending friend request to existing user {}", requester.getEmail(), recipientEmail);
+            return friendshipRepository.save(newRequest);
+        } else {
+            // User does not exist, send invitation email
+            logger.info("User {} not found. Sending invitation email to {}", recipientEmail, recipientEmail);
+            emailService.sendInvitationEmail(recipientEmail, requester); // Assuming this method exists
+            return null; // Indicate that an invitation was sent, not a friendship created
         }
-
-        Friendship newRequest = new Friendship();
-        newRequest.setUser1(requester);
-        newRequest.setUser2(recipient);
-        newRequest.setStatus(FriendshipStatus.PENDING);
-        newRequest.setActionUserId(requester.getId());
-
-        logger.info("User {} sending friend request to {}", requester.getEmail(), recipientEmail);
-        return friendshipRepository.save(newRequest);
     }
 
     @Override

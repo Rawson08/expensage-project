@@ -116,8 +116,14 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ groupId, onMemberAdded, o
     setFriendRequestLoading(true);
 
     try {
-        await sendFriendRequest(friendEmail);
-        setAddFriendSuccess(`Friend request sent to ${friendEmail}. Add them to the group from the list after they accept.`);
+        const result = await sendFriendRequest(friendEmail);
+        if (result) {
+            // Friend request sent successfully (user exists)
+            setAddFriendSuccess(`Friend request sent to ${friendEmail}. Add them to the group from the list after they accept.`);
+        } else {
+            // Invitation email sent (user does not exist)
+            setAddFriendSuccess(`Invitation email sent to ${friendEmail}. They can join the group after signing up.`);
+        }
         setFriendEmail('');
     } catch (err: any) {
         console.error('Failed to send friend request:', err);

@@ -63,17 +63,15 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow requests from frontend dev server, local IP, and production domain
         configuration.setAllowedOrigins(List.of(
             "http://localhost:5173",
-            "http://10.0.0.203:5173", // Keep local IP if needed for testing
-            "https://expensage.roshansubedi.me" // Add production frontend URL
+            "http://10.0.0.203:5173",
+            "https://expensage.roshansubedi.me"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        // configuration.setAllowCredentials(true); // Generally not needed for token auth in localStorage
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply CORS to all API paths
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
@@ -81,21 +79,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(withDefaults()) // Enable CORS using the corsConfigurationSource bean
+                .cors(withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // Restore original rule
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        // Add OpenAPI/Swagger UI endpoints if you use them
-                        // .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().authenticated() // Restore original rule
                 );
 
          http.headers(headers -> headers
-             .frameOptions(frameOptions -> frameOptions.disable()) // Allow H2 console in frames if needed
+             .frameOptions(frameOptions -> frameOptions.disable())
          );
 
         http.authenticationProvider(authenticationProvider());
