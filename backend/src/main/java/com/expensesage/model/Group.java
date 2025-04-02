@@ -64,6 +64,9 @@ public class Group {
     // @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     // private Set<Payment> payments = new HashSet<>();
 
+    @Column(nullable = false)
+    private boolean simplifyDebts = false; // Setting for debt simplification
+
 
     // --- Custom equals and hashCode based on ID ---
      @Override

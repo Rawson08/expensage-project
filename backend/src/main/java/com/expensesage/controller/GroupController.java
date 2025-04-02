@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping; // Added
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.expensesage.dto.AddMemberRequest;
 import com.expensesage.dto.GroupCreateRequest;
 import com.expensesage.dto.GroupResponseDto;
+import com.expensesage.dto.GroupSettingsUpdateRequest; // Added
 import com.expensesage.dto.TransactionDto;
 import com.expensesage.dto.UserResponse;
 import com.expensesage.mapper.GroupMapper;
@@ -155,6 +157,20 @@ public class GroupController {
         } catch (SecurityException e) {
              throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (RuntimeException e) {
+             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+ 
+    @PutMapping("/{groupId}/settings")
+    public ResponseEntity<GroupResponseDto> updateGroupSettings(@PathVariable Long groupId, @Valid @RequestBody GroupSettingsUpdateRequest settingsDto) {
+        try {
+            User currentUser = getCurrentUser();
+            Group updatedGroup = groupService.updateGroupSettings(groupId, settingsDto, currentUser);
+            return ResponseEntity.ok(groupMapper.toGroupResponseDto(updatedGroup));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (RuntimeException e) {
+             // Handle group not found or other potential errors from the service
              throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }

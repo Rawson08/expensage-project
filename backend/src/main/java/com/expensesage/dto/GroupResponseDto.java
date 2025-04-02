@@ -18,4 +18,5 @@ public class GroupResponseDto {
     private UserResponse creator; // Added creator field
     private Set<UserResponse> members;
     private List<PaymentResponseDto> payments; // Added payments list
+    private boolean simplifyDebts; // Added debt simplification setting
 }

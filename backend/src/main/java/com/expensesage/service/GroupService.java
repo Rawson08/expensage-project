@@ -3,6 +3,7 @@ package com.expensesage.service;
 import java.util.List;
 import java.util.Set;
 
+import com.expensesage.dto.GroupSettingsUpdateRequest; // Added
 import com.expensesage.model.Group;
 import com.expensesage.model.User;
 
@@ -89,4 +90,16 @@ public interface GroupService {
      * @throws RuntimeException if group not found or user is not a member.
      */
     List<com.expensesage.dto.TransactionDto> getGroupTransactions(Long groupId, User currentUser); // Added method
+ 
+    /**
+     * Updates the settings for a specific group.
+     * Currently only supports toggling debt simplification.
+     *
+     * @param groupId     The ID of the group to update.
+     * @param settingsDto The DTO containing the settings to update.
+     * @param currentUser The user performing the action (must be the group creator).
+     * @return The updated Group entity.
+     * @throws RuntimeException if group not found or user is not the creator.
+     */
+    Group updateGroupSettings(Long groupId, GroupSettingsUpdateRequest settingsDto, User currentUser);
 }

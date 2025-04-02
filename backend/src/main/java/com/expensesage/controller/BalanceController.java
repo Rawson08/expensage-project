@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.expensesage.dto.BalanceDto;
 import com.expensesage.dto.OverallBalanceSummaryDto;
+import com.expensesage.dto.SimplifiedPaymentDto; // Added
 import com.expensesage.model.User;
 import com.expensesage.repository.UserRepository;
 import com.expensesage.security.services.UserDetailsImpl;
@@ -83,4 +84,20 @@ public class BalanceController {
          BalanceDto balance = balanceService.getBalanceBetweenUsers(currentUser, otherUser);
          return ResponseEntity.ok(balance);
      }
+ 
+    /**
+     * Gets the simplified list of payments needed to settle debts within a specific group.
+     */
+    @GetMapping("/group/{groupId}/simplified")
+    public ResponseEntity<List<SimplifiedPaymentDto>> getSimplifiedGroupPayments(@PathVariable Long groupId) {
+        User currentUser = getCurrentUser();
+        try {
+            List<SimplifiedPaymentDto> simplifiedPayments = balanceService.getSimplifiedGroupPayments(groupId, currentUser); // Corrected argument order
+            return ResponseEntity.ok(simplifiedPayments);
+        } catch (SecurityException e) {
+             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (RuntimeException e) { // Catches group not found from service layer
+             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
 }

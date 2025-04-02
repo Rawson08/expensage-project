@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.expensesage.dto.AddMemberRequest;
+import com.expensesage.dto.GroupSettingsUpdateRequest; // Added
 import com.expensesage.dto.TransactionDto; // Added
 import com.expensesage.mapper.ExpenseMapper; // Added
 import com.expensesage.mapper.PaymentMapper;
@@ -282,5 +283,27 @@ public class GroupServiceImpl implements GroupService {
 
         logger.info("Returning {} combined transactions for group {}", combinedTransactions.size(), groupId);
         return combinedTransactions;
+    }
+ 
+    @Override
+    @Transactional
+    public Group updateGroupSettings(Long groupId, GroupSettingsUpdateRequest settingsDto, User currentUser) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found with ID: " + groupId));
+ 
+        // Authorization: Only the creator can change settings
+        Hibernate.initialize(group.getCreator()); // Ensure creator is loaded
+        if (!group.getCreator().equals(currentUser)) {
+            logger.warn("User {} attempted to change settings for group ID {} owned by {}", currentUser.getEmail(), groupId, group.getCreator().getEmail());
+            throw new org.springframework.security.access.AccessDeniedException("Only the group creator can change group settings.");
+        }
+ 
+        group.setSimplifyDebts(settingsDto.getSimplifyDebts());
+        Group updatedGroup = groupRepository.save(group);
+        logger.info("User {} updated settings for group ID {}. Simplify debts set to: {}", currentUser.getEmail(), groupId, updatedGroup.isSimplifyDebts());
+        
+        // Eager fetch members before returning, as the caller might need them
+        Hibernate.initialize(updatedGroup.getMembers());
+        return updatedGroup;
     }
 }
