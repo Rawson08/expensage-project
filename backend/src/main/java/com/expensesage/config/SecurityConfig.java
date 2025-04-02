@@ -24,11 +24,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.expensesage.security.jwt.AuthEntryPointJwt;
 import com.expensesage.security.jwt.AuthTokenFilter;
-import com.expensesage.security.services.UserDetailsServiceImpl; // Import for CORS
+import com.expensesage.security.services.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Enables method-level security like @PreAuthorize
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -63,16 +63,17 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow requests from the frontend development server (localhost and local IP)
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://10.0.0.203:5173")); // Added local IP
-        // Allow common HTTP methods
+        // Allow requests from frontend dev server, local IP, and production domain
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:5173",
+            "http://10.0.0.203:5173", // Keep local IP if needed for testing
+            "https://expensage.roshansubedi.me" // Add production frontend URL
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
-        // Allow common headers, including Authorization for JWT
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        // Allow credentials (like cookies, although we use JWT)
-        // configuration.setAllowCredentials(true); // Usually not needed for JWT if stored in localStorage
+        // configuration.setAllowCredentials(true); // Generally not needed for token auth in localStorage
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply CORS to all paths
+        source.registerCorsConfiguration("/**", configuration); // Apply CORS to all API paths
         return source;
     }
 
@@ -81,31 +82,23 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(withDefaults()) // Enable CORS using the corsConfigurationSource bean
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler)) // Set custom entry point
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Use stateless sessions
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/**").permitAll() // Allow ALL under /api/auth/**
-                        // .requestMatchers("/api/auth/test-email").permitAll() // Included in above
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        // Add other public endpoints if needed (e.g., API docs)
-                        // .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                        .anyRequest().authenticated() // All other requests require authentication
+                        // Add OpenAPI/Swagger UI endpoints if you use them
+                        // .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .anyRequest().authenticated()
                 );
 
-        // Allow frames for H2 console (if needed, check if required with newer Spring Security)
-        // http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
-        // For Spring Security 6.1+, frameOptions is deprecated, use:
          http.headers(headers -> headers
-             .frameOptions(frameOptions -> frameOptions.disable()) // More permissive for H2 console
+             .frameOptions(frameOptions -> frameOptions.disable()) // Allow H2 console in frames if needed
          );
 
-
-        // Set the custom authentication provider
         http.authenticationProvider(authenticationProvider());
-
-        // Add the JWT filter before the standard UsernamePasswordAuthenticationFilter
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

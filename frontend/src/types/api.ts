@@ -1,10 +1,10 @@
 // Types related to API responses (matching backend DTOs)
 
 export interface UserResponse {
-  id: number; // Use number for IDs in frontend typically
+  id: number;
   name: string;
   email: string;
-  createdAt: string; // Dates often come as ISO strings
+  createdAt: string;
 }
 
 export interface JwtResponse {
@@ -16,8 +16,8 @@ export interface JwtResponse {
 }
 
 export interface BalanceDto {
-  otherUser: UserResponse; // Reusing UserResponse for the other user details
-  netAmount: number; // Using number for frontend calculations/display
+  otherUser: UserResponse;
+  netAmount: number;
   currency: string;
 }
 
@@ -25,7 +25,7 @@ export interface GroupResponseDto {
   id: number;
   name: string;
   createdAt: string;
-  creator: UserResponse; // Added creator
+  creator: UserResponse;
   members: UserResponse[];
 }
 
@@ -48,15 +48,21 @@ export interface SplitResponseDto {
     amountOwed: number;
 }
 
-export interface ExpenseResponseDto {
+// Base interface for common transaction properties
+interface BaseTransactionDto {
     id: number;
-    description: string;
     amount: number;
     currency: string;
     date: string;
     createdAt: string;
-    payers: PayerResponseDto[];
     groupId?: number | null;
+}
+
+// Extend BaseTransactionDto for Expense
+export interface ExpenseResponseDto extends BaseTransactionDto {
+    type: 'expense';
+    description: string;
+    payers: PayerResponseDto[];
     splitType: 'EQUAL' | 'EXACT' | 'PERCENTAGE' | 'SHARE';
     splits: SplitResponseDto[];
     notes?: string | null;
@@ -65,19 +71,16 @@ export interface ExpenseResponseDto {
 
 // --- Expense Request Types ---
 
-// Corresponds to backend PayerDetailDto
 export interface PayerDetailDto {
     userId: number;
     amountPaid: number;
 }
 
-// Corresponds to backend SplitDetailDto
 export interface SplitDetailDto {
     userId: number;
     value?: number | string | null;
 }
 
-// Corresponds to backend ExpenseCreateRequest
 export interface ExpenseCreateRequest {
     description: string;
     amount: number;
@@ -123,34 +126,13 @@ export interface PaymentCreateRequest {
     groupId?: number | null;
 }
 
-export interface PaymentResponseDto {
-    id: number;
+// Extend BaseTransactionDto for Payment
+export interface PaymentResponseDto extends BaseTransactionDto {
+    type: 'payment'; 
     paidBy: UserResponse;
     paidTo: UserResponse;
-    amount: number;
-    date: string;
-    currency: string;
-    groupId?: number | null;
-    createdAt: string;
+    description?: string;
 }
 
-// DTO for combined transaction list
-export interface TransactionDto {
-  id: number;
-  type: 'expense' | 'payment';
-  description: string;
-  amount: number;
-  currency: string;
-  date: string;
-  createdAt: string;
-
-  // Expense specific details (optional)
-  payers?: PayerResponseDto[];
-  splits?: SplitResponseDto[];
-  notes?: string | null;
-  receiptUrl?: string | null;
-
-  // Payment specific details (optional)
-  paidBy?: UserResponse;
-  paidTo?: UserResponse;
-}
+// Union type for combined transaction list
+export type TransactionDto = ExpenseResponseDto | PaymentResponseDto;

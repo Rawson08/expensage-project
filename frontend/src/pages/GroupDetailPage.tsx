@@ -6,6 +6,7 @@ import { deleteExpense } from '../services/expenseService';
 import { deletePayment } from '../services/paymentService';
 import { getGroupBalances } from '../services/balanceService';
 import { getGroupTransactions, leaveGroup, deleteGroup } from '../services/groupService';
+// Removed unused SplitResponseDto, UserResponse from direct import
 import { GroupResponseDto, ExpenseResponseDto, BalanceDto, PaymentResponseDto, TransactionDto, PayerResponseDto } from '../types/api';
 import AddExpenseForm from '../components/AddExpenseForm';
 import AddMemberForm from '../components/AddMemberForm';
@@ -13,10 +14,22 @@ import AddPaymentForm from '../components/AddPaymentForm';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { toast } from 'react-toastify';
 
+// Placeholder Icon Component (Replace with actual icons later if desired)
+const PlaceholderIcon = () => (
+    <svg className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+);
+
 type ConfirmActionType = 'delete_expense' | 'delete_payment' | 'leave_group' | 'delete_group';
 interface ConfirmData {
     id?: number;
     type: ConfirmActionType;
+}
+
+// Type guard function using the 'type' property
+function isExpense(tx: TransactionDto): tx is ExpenseResponseDto {
+    return tx.type === 'expense';
 }
 
 
@@ -34,10 +47,13 @@ const GroupDetailPage: React.FC = () => {
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseResponseDto | null>(null);
   const [editingPayment, setEditingPayment] = useState<PaymentResponseDto | null>(null);
-  const [showNotesModal, setShowNotesModal] = useState(false);
-  const [noteToShow, setNoteToShow] = useState<string | null>(null);
+  // Removed state for separate notes modal
+  // const [showNotesModal, setShowNotesModal] = useState(false);
+  // const [noteToShow, setNoteToShow] = useState<string | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmData, setConfirmData] = useState<ConfirmData | null>(null);
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseResponseDto | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
 
   const fetchGroupData = useCallback(async () => {
@@ -63,6 +79,8 @@ const GroupDetailPage: React.FC = () => {
             balancesPromise,
             transactionsPromise
         ]);
+
+        transactionsResponse.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         setGroup(groupResponse.data);
         setGroupBalances(balancesResponse);
@@ -107,40 +125,27 @@ const GroupDetailPage: React.FC = () => {
       fetchGroupData();
   };
 
-  const handlePaymentSaved = (_savedPayment: PaymentResponseDto) => { // Added underscore
+  const handlePaymentSaved = (_savedPayment: PaymentResponseDto) => {
       setShowAddPaymentForm(false);
       setEditingPayment(null);
       toast.success(editingPayment ? "Payment updated!" : "Payment added!");
       fetchGroupData();
   };
 
-  const handleEditExpense = (expenseId: number) => {
-      const expenseToEdit = transactions.find(tx => tx.type === 'expense' && tx.id === expenseId) as ExpenseResponseDto | undefined;
-      if (expenseToEdit) {
-          setEditingExpense(expenseToEdit);
-          setShowAddExpenseForm(true);
-      } else {
-          const errorMsg = "Could not find the expense to edit.";
-          console.error("Could not find expense with ID", expenseId, "to edit.");
-          setError(errorMsg);
-          toast.error(errorMsg);
-      }
+  // Called from Detail Modal Edit button
+  const handleEditExpenseClick = (expense: ExpenseResponseDto) => {
+      setEditingExpense(expense);
+      setShowAddExpenseForm(true);
+      setIsDetailModalOpen(false);
   };
 
-  const handleEditPayment = (paymentId: number) => {
-       const paymentToEdit = transactions.find(tx => tx.type === 'payment' && tx.id === paymentId) as PaymentResponseDto | undefined;
-       if (paymentToEdit) {
-           setEditingPayment(paymentToEdit);
-           setShowAddPaymentForm(true);
-       } else {
-           const errorMsg = "Could not find the payment to edit.";
-           console.error("Could not find payment with ID", paymentId, "to edit.");
-           setError(errorMsg);
-           toast.error(errorMsg);
-       }
+  // Called from Detail Modal Delete button
+  const handleDeleteExpenseClick = (expenseId: number) => {
+      openConfirmModal('delete_expense', expenseId);
+      setIsDetailModalOpen(false);
   };
 
-  // --- Modal Handling ---
+  // --- Confirmation Modal Logic ---
   const openConfirmModal = (type: ConfirmActionType, id?: number) => {
         setConfirmData({ id, type });
         setIsConfirmModalOpen(true);
@@ -179,7 +184,7 @@ const GroupDetailPage: React.FC = () => {
                 toast.success(successMessage);
             }
             if (type !== 'leave_group' && type !== 'delete_group') {
-                fetchGroupData();
+                fetchGroupData(); // Refetch data after successful action
             }
         } catch (err: any) {
             const errorMsg = `Failed to ${type.replace('_', ' ')}: ${err.message || 'Unknown error'}`;
@@ -188,16 +193,20 @@ const GroupDetailPage: React.FC = () => {
             console.error(`Failed to ${type}:`, err);
         }
     };
-    // --- End Modal Handling ---
+    // --- End Confirmation Modal Logic ---
 
-
-  const handleDeleteExpense = (expenseId: number) => {
-      openConfirmModal('delete_expense', expenseId);
+  // --- Expense Detail Modal Logic ---
+  const openDetailModal = (expense: ExpenseResponseDto) => {
+      setSelectedExpense(expense);
+      setIsDetailModalOpen(true);
   };
 
-  const handleDeletePayment = (paymentId: number) => {
-      openConfirmModal('delete_payment', paymentId);
+  const closeDetailModal = () => {
+      setIsDetailModalOpen(false);
+      setSelectedExpense(null);
   };
+  // --- End Expense Detail Modal Logic ---
+
 
   const handleLeaveGroup = () => {
       if (!user || !groupId) return;
@@ -209,16 +218,13 @@ const GroupDetailPage: React.FC = () => {
       openConfirmModal('delete_group');
   };
 
-  const handleShowNotes = (notes: string | null | undefined) => {
-      if (notes) {
-          setNoteToShow(notes);
-          setShowNotesModal(true);
-      }
-  };
+  // Removed unused handleShowNotes function
+  // const handleShowNotes = (notes: string | null | undefined) => { ... };
 
 
-  const formatCurrency = (amount: number, currencyCode: string = 'USD') => {
+  const formatCurrency = (amount: number | null | undefined, currencyCode: string = 'USD') => {
     if (amount === null || amount === undefined) return 'N/A';
+    if (amount === 0) return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode }).format(0);
     try {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode }).format(amount);
     } catch (e) {
@@ -232,12 +238,57 @@ const GroupDetailPage: React.FC = () => {
       return payers.map(p => p.user ? `${p.user.id === user?.id ? 'You' : p.user.name} (${formatCurrency(p.amountPaid, 'USD')})` : 'Unknown Payer').join(', ');
   };
 
+
+  // --- Calculation Helpers ---
+  const calculateUserPaidAmount = (payers: PayerResponseDto[]): number => {
+      if (!user) return 0;
+      return (payers || []).reduce((sum, payer) => {
+          return sum + (payer?.user?.id === user.id ? payer.amountPaid : 0);
+      }, 0);
+  };
+
+  const calculateUserLentAmount = (expense: ExpenseResponseDto): number => {
+      if (!user) return 0;
+
+      const userPaid = calculateUserPaidAmount(expense.payers || []);
+      let userShare = 0;
+      const userSplit = (expense.splits || []).find(split => split?.owedBy?.id === user.id);
+
+      if (userSplit) {
+          userShare = userSplit.amountOwed;
+      } else {
+          if (expense.splitType === 'EQUAL' && (expense.splits || []).length > 0) {
+              const involvedMemberIds = new Set((expense.splits || []).map(s => s?.owedBy?.id).filter(id => id !== undefined));
+              if (!involvedMemberIds.has(user.id)) {
+                 userShare = 0;
+              }
+              else {
+                 userShare = expense.amount / involvedMemberIds.size;
+              }
+          } else if (expense.splitType === 'EQUAL' && (expense.splits || []).length === 0) {
+              userShare = userPaid;
+          }
+          else {
+              userShare = 0;
+          }
+      }
+
+      const lentAmount = userPaid - userShare;
+      return Math.round(lentAmount * 100) / 100;
+  };
+  // --- End Calculation Helpers ---
+
+
   if (isLoading) return <p>Loading group details...</p>;
   if (error && !group) return <p className="text-red-500">Error: {error}</p>;
   if (!group) return <p>Group not found.</p>;
 
   const isLastMember = group.members.length <= 1;
   const isCreator = user?.id === group.creator?.id;
+
+  const expensesOnly = transactions.filter(isExpense);
+
+  let lastRenderedMonthYear: string | null = null;
 
   const getModalContent = () => {
         if (!confirmData) return { title: '', message: '', confirmText: 'Confirm' };
@@ -320,61 +371,88 @@ const GroupDetailPage: React.FC = () => {
       </div>
 
 
-      {/* Transactions List */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-         <h3 className="text-lg font-semibold mb-3">Transactions</h3>
-        {isLoading && <p>Loading transactions...</p>}
-        {!error && transactions.length === 0 && !isLoading && (
-              <p className="text-gray-500">No transactions recorded in this group yet.</p>
+      {/* REFACTORED Expense List */}
+      <div className="bg-white shadow rounded-lg mb-6">
+         <h3 className="text-lg font-semibold mb-0 p-4 border-b">Expenses</h3>
+        {isLoading && <p className="p-4 text-gray-500">Loading expenses...</p>}
+        {!error && expensesOnly.length === 0 && !isLoading && (
+              <p className="p-4 text-gray-500">No expenses recorded in this group yet.</p>
         )}
-        {!isLoading && !error && transactions.length > 0 && (
+        {!isLoading && !error && expensesOnly.length > 0 && (
               <ul className="divide-y divide-gray-200">
-                {transactions.map((tx) => (
-                  <li key={`${tx.type}-${tx.id}`} className="py-3">
-                    {tx.type === 'expense' && (
-                        <>
-                            <div className="flex justify-between items-center">
+                {expensesOnly.map((expense, index) => {
+                    const youPaid = calculateUserPaidAmount(expense.payers || []);
+                    const youLent = calculateUserLentAmount(expense);
+                    const lentAmountDisplay = youLent >= 0 ? youLent : 0;
+                    const borrowedAmountDisplay = youLent < 0 ? Math.abs(youLent) : 0;
+                    const expenseDate = new Date(expense.date + 'T00:00:00');
+                    const currentMonthYear = `${expenseDate.getFullYear()}-${expenseDate.getMonth()}`;
+
+                    const showMonthHeader = index === 0 || lastRenderedMonthYear !== currentMonthYear;
+                    lastRenderedMonthYear = currentMonthYear;
+
+                    const expenseListItem = (
+                         <li key={`expense-${expense.id}`}
+                             className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-50`}
+                             onClick={() => openDetailModal(expense)}
+                         >
+                            {/* Date Column */}
+                            <div className="w-10 text-center mr-2 flex-shrink-0">
+                                <p className="text-xs uppercase text-gray-500">{expenseDate.toLocaleString('default', { month: 'short' })}</p>
+                                <p className="text-base font-medium text-gray-700">{expenseDate.getDate()}</p>
+                            </div>
+                            {/* Icon & Description Column */}
+                            <div className="flex-grow flex items-center mr-3 overflow-hidden">
+                                <PlaceholderIcon />
+                                <p className="font-medium text-sm text-gray-800 truncate" title={expense.description}>{expense.description}</p>
+                                {expense.notes && <span title="Has notes" className="ml-1 text-gray-400 text-xs">📝</span>}
+                                {expense.receiptUrl && <span title="Has receipt" className="ml-1 text-gray-400 text-xs">📎</span>}
+                            </div>
+                            {/* Stacked Amounts Column */}
+                            <div className="flex flex-col text-right w-20 flex-shrink-0">
+                                {/* You Paid */}
                                 <div>
-                                    <p className="font-medium">{tx.description}</p>
-                                    <p className="text-sm text-gray-500">
-                                        Paid by {getPayerString(tx.payers)} on {tx.date}
+                                    <p className="text-xs text-gray-500 leading-tight">you paid</p>
+                                    <p className="text-xs font-medium text-gray-700 leading-tight">{formatCurrency(youPaid, expense.currency)}</p>
+                                </div>
+                                {/* You Lent/Borrowed */}
+                                <div className="mt-1">
+                                    {lentAmountDisplay > 0 ? (
+                                        <>
+                                            <p className="text-xs text-green-600 leading-tight">you lent</p>
+                                            <p className="text-xs font-medium text-green-600 leading-tight">{formatCurrency(lentAmountDisplay, expense.currency)}</p>
+                                        </>
+                                    ) : borrowedAmountDisplay > 0 ? (
+                                        <>
+                                            <p className="text-xs text-red-600 leading-tight">you borrowed</p>
+                                            <p className="text-xs font-medium text-red-600 leading-tight">{formatCurrency(borrowedAmountDisplay, expense.currency)}</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-xs text-gray-500 leading-tight">settled</p>
+                                            <p className="text-xs font-medium text-gray-500 leading-tight">{formatCurrency(0, expense.currency)}</p>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </li>
+                    );
+
+                    if (showMonthHeader) {
+                        return (
+                            <React.Fragment key={`month-${currentMonthYear}`}>
+                                <li className="bg-gray-100 px-4 py-1 mt-4 border-t border-b">
+                                    <p className="text-sm font-semibold text-gray-600">
+                                        {expenseDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                                     </p>
-                                </div>
-                                <div className="flex items-center space-x-3">
-                                    <span className="font-medium">{formatCurrency(tx.amount, tx.currency)}</span>
-                                    {tx.receiptUrl && ( <a href={tx.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-600 hover:underline p-1">Receipt</a> )}
-                                    {tx.notes && ( <button onClick={() => handleShowNotes(tx.notes)} className="text-xs text-gray-500 hover:text-gray-700 hover:underline p-1">Notes</button> )}
-                                    <button onClick={() => handleEditExpense(tx.id)} className="text-xs text-blue-600 hover:underline p-1">Edit</button>
-                                    <button onClick={() => handleDeleteExpense(tx.id)} className="text-xs text-red-600 hover:underline p-1">Delete</button>
-                                </div>
-                            </div>
-                            <div className="mt-1 pl-4 text-sm text-gray-600">
-                                {tx.splits && tx.splits.length > 0 ? (
-                                    <ul>
-                                        {tx.splits.map(split => (
-                                            split.owedBy ? ( <li key={split.splitId}> - {split.owedBy.id === user?.id ? 'You owe' : `${split.owedBy.name} owes`} {formatCurrency(split.amountOwed, tx.currency)} </li> )
-                                                         : ( <li key={split.splitId}>- Error: Owed by user missing</li> )
-                                        ))}
-                                    </ul>
-                                ) : ( <p><i>(Paid by payer(s) for themselves)</i></p> )}
-                            </div>
-                        </>
-                    )}
-                    {tx.type === 'payment' && tx.paidBy && tx.paidTo && (
-                         <div className="flex justify-between items-center">
-                            <div>
-                                <p className="font-medium italic"> {tx.paidBy.id === user?.id ? 'You' : tx.paidBy.name} paid {tx.paidTo.id === user?.id ? 'You' : tx.paidTo.name} </p>
-                                <p className="text-sm text-gray-500"> Payment recorded on {tx.date} </p>
-                            </div>
-                             <div className="flex items-center space-x-3">
-                                <span className="font-medium">{formatCurrency(tx.amount, tx.currency)}</span>
-                                {tx.paidBy.id === user?.id && ( <button onClick={() => handleEditPayment(tx.id)} className="text-xs text-blue-600 hover:underline p-1">Edit</button> )}
-                                <button onClick={() => handleDeletePayment(tx.id)} className="text-xs text-red-600 hover:underline p-1">Delete</button>
-                            </div>
-                        </div>
-                    )}
-                  </li>
-                ))}
+                                </li>
+                                {expenseListItem}
+                            </React.Fragment>
+                        );
+                    } else {
+                        return expenseListItem;
+                    }
+                })}
               </ul>
           )}
         </div>
@@ -436,30 +514,8 @@ const GroupDetailPage: React.FC = () => {
                 </div>
             </div>
        )}
-       {/* Notes Modal */}
-       {showNotesModal && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-30 flex items-center justify-center">
-                <div className="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
-                    <div className="mt-3 text-center">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900">Expense Notes</h3>
-                        <div className="mt-2 px-7 py-3">
-                            <p className="text-sm text-gray-500 whitespace-pre-wrap">
-                                {noteToShow}
-                            </p>
-                        </div>
-                        <div className="items-center px-4 py-3">
-                            <button
-                                id="ok-btn"
-                                onClick={() => setShowNotesModal(false)}
-                                className="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-       )}
+       {/* Notes Modal (Separate - can be removed if detail modal handles notes) */}
+       {/* {showNotesModal && ( ... )} */} {/* Commented out separate notes modal */}
 
         {/* Confirmation Modal */}
         <ConfirmationModal
@@ -470,6 +526,39 @@ const GroupDetailPage: React.FC = () => {
             message={modalContent.message}
             confirmButtonText={modalContent.confirmText}
         />
+
+        {/* Expense Detail Modal */}
+        {isDetailModalOpen && selectedExpense && (
+             <div className="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-30 flex items-center justify-center" onClick={closeDetailModal}>
+                 <div className="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white" onClick={(e) => e.stopPropagation()}>
+                     <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Expense Details: {selectedExpense.description}</h3>
+                     <div className="space-y-2 text-sm text-gray-700 max-h-96 overflow-y-auto pr-2">
+                         <p><strong>Date:</strong> {selectedExpense.date}</p>
+                         <p><strong>Amount:</strong> {formatCurrency(selectedExpense.amount, selectedExpense.currency)}</p>
+                         <p><strong>Paid By:</strong> {getPayerString(selectedExpense.payers)}</p>
+                         <p><strong>Split Type:</strong> {selectedExpense.splitType}</p>
+                         <div>
+                             <strong>Splits:</strong>
+                             <ul className='list-disc list-inside pl-4 text-sm'>
+                                {(selectedExpense.splits || []).map(split => (
+                                    <li key={split.splitId}>
+                                        {split.owedBy?.name || 'Unknown User'} owes {formatCurrency(split.amountOwed, selectedExpense.currency)}
+                                    </li>
+                                ))}
+                             </ul>
+                         </div>
+                         <p><strong>Notes:</strong> {selectedExpense.notes || 'N/A'}</p>
+                         {selectedExpense.receiptUrl && <p><a href={selectedExpense.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Receipt</a></p>}
+                     </div>
+
+                     <div className="mt-6 flex justify-end space-x-3 border-t pt-4">
+                          <button onClick={() => handleEditExpenseClick(selectedExpense)} className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600">Edit</button>
+                          <button onClick={() => handleDeleteExpenseClick(selectedExpense.id)} className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700">Delete</button>
+                          <button onClick={closeDetailModal} className="px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-300">Close</button>
+                     </div>
+                 </div>
+             </div>
+        )}
 
     </div>
   );
