@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../services/authService';
+import { toast } from 'react-toastify'; // Import toast
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -8,14 +9,14 @@ const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  // const [success, setSuccess] = useState<string | null>(null); // Remove success state
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
-    setSuccess(null);
+    setError(null); // Keep clearing local error state
+    // setSuccess(null); // Remove success state clearing
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -30,13 +31,13 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
     try {
       await registerUser({ name, email, password });
-      setSuccess('Registration successful! Please check your email to verify your account. Redirecting to login...');
+      toast.success('Registration successful! Please check your email to verify your account.'); // Use toast.success
       // Redirect to login page after a short delay
       setTimeout(() => {
         navigate('/login');
       }, 3000); // 3 second delay
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      toast.error(err.message || 'Registration failed. Please try again.'); // Use toast.error for API errors
     } finally {
       setLoading(false);
     }
@@ -126,16 +127,7 @@ const RegisterPage: React.FC = () => {
             </div>
           )}
 
-           {/* Success Message */}
-           {success && (
-            <div className="rounded-md bg-green-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-green-800">{success}</p>
-                </div>
-              </div>
-            </div>
-          )}
+           {/* Success Message Block Removed */}
 
 
           <div>

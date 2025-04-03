@@ -1,28 +1,29 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../services/api';
+import { toast } from 'react-toastify'; // Import toast
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // const [message, setMessage] = useState<string | null>(null); // Remove message state
+  // const [error, setError] = useState<string | null>(null); // Remove error state
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
-    setMessage(null);
+    // setError(null); // Remove error state clearing
+    // setMessage(null); // Remove message state clearing
     setLoading(true);
 
     try {
       // Call the backend forgot-password endpoint
       await apiClient.post('/auth/forgot-password', { email });
-      setMessage('If an account exists for this email, a password reset link has been sent. Please check your inbox (and spam folder).');
+      toast.info('If an account exists for this email, a password reset link has been sent. Please check your inbox (and spam folder).'); // Use toast.info
       setEmail(''); // Clear the form
     } catch (err) {
       console.error("Forgot password error:", err);
       // Show a generic error, as the backend always returns success to prevent enumeration
-      setError('An error occurred. Please try again later.');
+      toast.error('An error occurred. Please try again later.'); // Use toast.error
     } finally {
       setLoading(false);
     }
@@ -59,27 +60,8 @@ const ForgotPasswordPage: React.FC = () => {
             </div>
           </div>
 
-           {/* Error Message */}
-           {error && (
-            <div className="rounded-md bg-red-50 p-4 mt-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-red-800">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-           {/* Success/Info Message */}
-           {message && (
-            <div className="rounded-md bg-blue-50 p-4 mt-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-blue-800">{message}</p>
-                </div>
-              </div>
-            </div>
-          )}
+           {/* Error Message Block Removed */}
+           {/* Success/Info Message Block Removed */}
 
 
           <div>

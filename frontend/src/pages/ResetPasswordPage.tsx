@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import apiClient from '../services/api';
 import { AxiosError } from 'axios';
+import { toast } from 'react-toastify'; // Import toast
 
 const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
+  // const [message, setMessage] = useState<string | null>(null); // Remove message state
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const token = searchParams.get('token');
@@ -21,8 +22,8 @@ const ResetPasswordPage: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
-    setMessage(null);
+    setError(null); // Keep clearing local error state
+    // setMessage(null); // Remove message state clearing
 
     if (!token) {
       setError('Invalid password reset link: Token missing.');
@@ -42,7 +43,7 @@ const ResetPasswordPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await apiClient.post('/auth/reset-password', { token, newPassword });
-      setMessage(response.data || 'Password has been successfully reset. Redirecting to login...');
+      toast.success(response.data || 'Password has been successfully reset. Redirecting to login...'); // Use toast.success
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -53,7 +54,7 @@ const ResetPasswordPage: React.FC = () => {
        } else if (err instanceof Error) {
            errorMsg = err.message;
        }
-      setError(`Password reset failed: ${errorMsg}`);
+      toast.error(`Password reset failed: ${errorMsg}`); // Use toast.error for API errors
     } finally {
       setLoading(false);
     }
@@ -114,22 +115,13 @@ const ResetPasswordPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Success Message */}
-            {message && (
-                <div className="rounded-md bg-green-50 p-4 mt-4">
-                <div className="flex">
-                    <div className="ml-3">
-                    <p className="text-sm font-medium text-green-800">{message}</p>
-                    </div>
-                </div>
-                </div>
-            )}
+           {/* Success Message Block Removed */}
 
 
             <div>
                 <button
                 type="submit"
-                disabled={loading || !!message} // Disable if loading or success message shown
+                disabled={loading} // Disable only while loading
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                 >
                 {loading ? 'Resetting...' : 'Reset Password'}

@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.expensesage.service.EmailService; // Keep exception import
-import com.expensesage.model.User; // Import User model
+import com.expensesage.model.User; // Keep exception import
+import com.expensesage.service.EmailService; // Import User model
 
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
@@ -49,7 +49,7 @@ public class MailgunEmailService implements EmailService {
     public void sendInvitationEmail(String recipientEmail, User sender) {
         String senderName = sender != null ? sender.getName() : "Someone";
         // TODO: Generate a real, unique invite link/token
-        String inviteLink = "https://expensage.com/invite/placeholder"; // Placeholder link
+        String inviteLink = "https://expensage.roshansubedi.me"; // Placeholder link
         String subject = senderName + " invited you to join ExpenseSage!";
 
         // Approximate HTML structure based on the React template

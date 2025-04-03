@@ -142,7 +142,7 @@ const GroupDetailPage: React.FC = () => {
       setShowAddPaymentForm(false);
       setEditingPayment(null);
       toast.success(editingPayment ? "Payment updated!" : "Payment added!");
-      fetchGroupData();
+      fetchGroupData(); // Refetch data after saving
   };
 
   // Called from Detail Modal Edit button
@@ -276,7 +276,7 @@ const GroupDetailPage: React.FC = () => {
 
   const handleDeleteCommentClick = (commentId: number) => {
       // Use the confirmation modal for deleting comments
-      openConfirmModal('delete_comment', commentId, 'this comment'); 
+      openConfirmModal('delete_comment', commentId, 'this comment');
   };
   // --- End Comment Handling Logic ---
 
@@ -291,6 +291,10 @@ const GroupDetailPage: React.FC = () => {
       openConfirmModal('delete_group');
   };
 
+  const handleEditPaymentClick = (payment: PaymentResponseDto) => {
+      setEditingPayment(payment);
+      setShowAddPaymentForm(true);
+  };
 
   const formatCurrency = (amount: number | null | undefined, currencyCode: string = 'USD') => {
     if (amount === null || amount === undefined) return 'N/A';
@@ -578,6 +582,17 @@ const GroupDetailPage: React.FC = () => {
                                     {/* Amount Column */}
                                     <div className="flex flex-col text-right w-20 flex-shrink-0">
                                         <p className="text-sm font-medium text-blue-600 leading-tight">{formatCurrency(payment.amount, payment.currency)}</p>
+                                    </div>
+                                    {/* Action Buttons: Edit, Delete */}
+                                    <div className="flex items-center space-x-2 ml-auto pl-2 flex-shrink-0">
+                                        {/* Edit Button */}
+                                        <button onClick={() => handleEditPaymentClick(payment)} className="p-1 rounded text-blue-600 hover:bg-blue-100" title="Edit Payment">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 13V11h2v2H5zm14-9l-2-2-9 9v4h4l7-7z"></path></svg>
+                                        </button>
+                                        {/* Delete Button */}
+                                        <button onClick={() => openConfirmModal('delete_payment', payment.id)} className="p-1 rounded text-red-600 hover:bg-red-100" title="Delete Payment">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path></svg>
+                                        </button>
                                     </div>
                                 </li>
                             );
