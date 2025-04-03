@@ -20,8 +20,8 @@ import com.expensesage.dto.ForgotPasswordRequest;
 import com.expensesage.dto.JwtResponse;
 import com.expensesage.dto.LoginRequest;
 import com.expensesage.dto.RegisterRequest;
-import com.expensesage.dto.ResetPasswordRequest;
-import com.expensesage.dto.ResendVerificationRequest; // Added import
+import com.expensesage.dto.ResendVerificationRequest;
+import com.expensesage.dto.ResetPasswordRequest; // Added import
 import com.expensesage.model.User;
 import com.expensesage.repository.UserRepository;
 import com.expensesage.security.jwt.JwtUtils;
@@ -249,7 +249,7 @@ public class AuthServiceImpl implements AuthService {
                     .heading { font-size: 24px; font-weight: bold; text-align: center; color: #333; margin: 32px 0 0 0; }
                     .text { font-size: 16px; line-height: 24px; color: #333; margin-top: 24px; }
                     .button-section { text-align: center; margin: 32px 0; }
-                    .button { background-color: #4F46E5; border-radius: 8px; color: white; font-weight: bold; padding: 12px 24px; text-decoration: none; display: inline-block; box-sizing: border-box; }
+                    .button { background-color: #4F46E5; border-radius: 8px; color: white !important; font-weight: bold; padding: 12px 24px; text-decoration: none; display: inline-block; box-sizing: border-box; } /* Added !important */
                     .small-text { font-size: 14px; line-height: 24px; color: #666; }
                     .footer-text { font-size: 12px; line-height: 16px; color: #8898aa; text-align: center; margin: 0; }
                     .footer-link { color: #8898aa; text-decoration: underline; }
@@ -263,7 +263,7 @@ public class AuthServiceImpl implements AuthService {
                     <p class="text">%s</p> <!-- Paragraph 1 -->
                     <p class="text">%s</p> <!-- Paragraph 2 -->
                     <div class="button-section">
-                        <a href="%s" class="button">%s</a> <!-- Button URL & Text -->
+                        <a href="%s" class="button" style="color: white !important;">%s</a> <!-- Button URL & Text, Added inline style -->
                     </div>
                     <p class="small-text">%s</p> <!-- Expiry Info -->
                     <hr/>
