@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Add useEffect
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import InstallPwaButton from './InstallPwaButton'; // Import the new component
+import InstallPwaButton from './InstallPwaButton';
+import { initializePushNotifications, isPushSupported } from '../services/pushService'; // Import push functions
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -16,6 +17,21 @@ const Layout: React.FC = () => {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  // Effect to initialize push notifications on login
+  useEffect(() => {
+      if (user && isPushSupported()) {
+          console.log('User logged in, attempting to initialize push notifications...');
+          initializePushNotifications().catch(err => {
+              console.error("Error initializing push notifications:", err);
+          });
+      }
+      // TODO: Consider handling unsubscription on logout if necessary,
+      // although typically subscriptions persist until manually removed by user/browser.
+      // if (!user && isPushSupported()) {
+      //    unsubscribeUserFromPush(); // You might need to implement backend call here too
+      // }
+  }, [user]); // Run when user state changes
 
   // Close mobile menu when a link is clicked
   const closeMobileMenu = () => {

@@ -6,9 +6,14 @@ import { VitePWA } from 'vite-plugin-pwa' // Import the PWA plugin
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({ // Add PWA plugin configuration
-      registerType: 'autoUpdate', // Automatically update service worker
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'], // Include essential icons
+    VitePWA({
+      // Switch strategy to use our custom SW
+      strategies: 'injectManifest',
+      srcDir: 'src', // Directory where sw.ts is located
+      filename: 'sw.ts', // Our custom service worker filename
+      registerType: 'autoUpdate',
+      injectRegister: 'auto', // Automatically adds registration code to the app
+      // includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'], // Keep assets if needed
       manifest: {
         name: 'ExpenSage',
         short_name: 'ExpenSage',
@@ -37,10 +42,16 @@ export default defineConfig({
           }
         ],
       },
-      // Optional: Configure service worker strategies (e.g., caching)
-      // workbox: {
-      //   globPatterns: ['**/*.{js,css,html,ico,png,svg}']
-      // }
+      // workbox options are used by injectManifest strategy by default
+      // You can customize workbox options here if needed, e.g., for precaching
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'], // Precache common assets
+        // runtimeCaching: [ ... ] // Add runtime caching if needed
+      },
+      devOptions: {
+        enabled: true, // Enable PWA features in dev mode
+        type: 'module', // Use module type for SW in dev
+      }
     })
   ],
   server: { // Add server configuration

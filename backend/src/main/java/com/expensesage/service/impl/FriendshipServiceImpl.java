@@ -1,8 +1,10 @@
 package com.expensesage.service.impl;
 
-import java.math.BigDecimal; // Ensure BigDecimal is imported
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap; // Import HashMap
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +19,9 @@ import com.expensesage.model.User; // Ensure BalanceDto is imported
 import com.expensesage.repository.FriendshipRepository;
 import com.expensesage.repository.UserRepository;
 import com.expensesage.service.BalanceService;
-import com.expensesage.service.EmailService; // Added EmailService import
+import com.expensesage.service.EmailService;
 import com.expensesage.service.FriendshipService;
+import com.expensesage.service.NotificationService; // Import NotificationService
 
 @Service
 public class FriendshipServiceImpl implements FriendshipService {
@@ -28,14 +31,20 @@ public class FriendshipServiceImpl implements FriendshipService {
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
     private final BalanceService balanceService;
-    private final EmailService emailService; // Added EmailService field
-
+    private final EmailService emailService;
+    private final NotificationService notificationService; // Add NotificationService field
+  
     @Autowired
-    public FriendshipServiceImpl(FriendshipRepository friendshipRepository, UserRepository userRepository, BalanceService balanceService, EmailService emailService) { // Added EmailService to constructor
+    public FriendshipServiceImpl(FriendshipRepository friendshipRepository,
+                                 UserRepository userRepository,
+                                 BalanceService balanceService,
+                                 EmailService emailService,
+                                 NotificationService notificationService) { // Inject NotificationService
         this.friendshipRepository = friendshipRepository;
         this.userRepository = userRepository;
         this.balanceService = balanceService;
-        this.emailService = emailService; // Initialize EmailService
+        this.emailService = emailService;
+        this.notificationService = notificationService; // Assign NotificationService
     }
 
     @Override
@@ -97,9 +106,27 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         friendship.setStatus(FriendshipStatus.ACCEPTED);
-        friendship.setActionUserId(null);
+        friendship.setActionUserId(null); // Clear action user ID
+        Friendship savedFriendship = friendshipRepository.save(friendship);
         logger.info("User {} accepted friend request ID {}", currentUser.getEmail(), friendshipId);
-        return friendshipRepository.save(friendship);
+      
+        // --- Send Notification ---
+        try {
+            User requester = savedFriendship.getUser1(); // The user who sent the request
+            String title = "Friend Request Accepted";
+            String body = String.format("%s accepted your friend request!", currentUser.getName());
+            // Payload for frontend to navigate on click (e.g., to friends page)
+            Map<String, String> payload = new HashMap<>();
+            payload.put("type", "friend_request_accepted");
+            payload.put("friendId", currentUser.getId().toString()); // ID of the user who accepted
+            notificationService.sendNotification(requester, title, body, payload);
+        } catch (Exception e) {
+            // Log notification error but don't fail the acceptance
+            logger.error("Failed to send notification for accepted friend request {}: {}",
+                         savedFriendship.getId(), e.getMessage());
+        }
+      
+        return savedFriendship;
     }
 
     @Override

@@ -40,6 +40,7 @@ import com.expensesage.repository.SplitRepository;
 import com.expensesage.repository.UserRepository;
 import com.expensesage.service.ExpenseService;
 import com.expensesage.service.GroupService;
+import com.expensesage.service.NotificationService; // Import NotificationService
 
 import software.amazon.awssdk.core.exception.SdkException; // Added SdkException
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -65,8 +66,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final S3Client s3Client;
     private final String r2BucketName;
     private final String r2EndpointUrl;
-    private final String r2PublicUrlBase; // Added public URL base field
-
+    private final String r2PublicUrlBase;
+    private final NotificationService notificationService; // Add NotificationService field
+  
 
     @Autowired
     public ExpenseServiceImpl(ExpenseRepository expenseRepository,
@@ -77,7 +79,8 @@ public class ExpenseServiceImpl implements ExpenseService {
                               S3Client s3Client,
                               @Value("${r2.bucket.name}") String r2BucketName,
                               @Value("${r2.endpoint.url}") String r2EndpointUrl,
-                              @Value("${r2.public.url.base}") String r2PublicUrlBase // Inject public URL base
+                              @Value("${r2.public.url.base}") String r2PublicUrlBase,
+                              NotificationService notificationService // Inject NotificationService
                               ) {
         this.expenseRepository = expenseRepository;
         this.userRepository = userRepository;
@@ -87,8 +90,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         this.s3Client = s3Client;
         this.r2BucketName = r2BucketName;
         this.r2EndpointUrl = r2EndpointUrl;
-        this.r2PublicUrlBase = r2PublicUrlBase; // Added assignment
-    }
+        this.r2PublicUrlBase = r2PublicUrlBase;
+        this.notificationService = notificationService; // Assign NotificationService
+       }
 
     @Override
     @Transactional
@@ -126,7 +130,38 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         logger.info("Saving new expense: {}", expense.getDescription());
         Expense savedExpense = expenseRepository.save(expense);
-
+      
+        // --- Send Notification ---
+        if (savedExpense.getGroup() != null) {
+            try {
+                // Ensure members are loaded (might already be due to validation, but good practice)
+                Hibernate.initialize(savedExpense.getGroup().getMembers());
+                Set<User> membersToNotify = savedExpense.getGroup().getMembers().stream()
+                        .filter(member -> !member.getId().equals(currentUser.getId())) // Exclude the creator
+                        .collect(Collectors.toSet());
+      
+                if (!membersToNotify.isEmpty()) {
+                    String title = "New Expense in " + savedExpense.getGroup().getName();
+                    String body = String.format("%s added '%s' (%s %s)",
+                            currentUser.getName(),
+                            savedExpense.getDescription(),
+                            savedExpense.getAmount().toPlainString(),
+                            savedExpense.getCurrency());
+                    // Payload for frontend to navigate on click
+                    Map<String, String> payload = Map.of(
+                        "type", "new_expense",
+                        "groupId", savedExpense.getGroup().getId().toString(),
+                        "expenseId", savedExpense.getId().toString()
+                    );
+                    notificationService.sendNotificationToUsers(membersToNotify, title, body, payload);
+                }
+            } catch (Exception e) {
+                // Log notification error but don't fail the expense creation
+                logger.error("Failed to send notification for new expense {} in group {}: {}",
+                             savedExpense.getId(), savedExpense.getGroup().getId(), e.getMessage());
+            }
+        }
+      
         return savedExpense;
     }
 

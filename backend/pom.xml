@@ -179,6 +179,19 @@
             <!-- Version managed by BOM -->
         </dependency>
 
+        <!-- Web Push Library -->
+        <dependency>
+            <groupId>nl.martijndwars</groupId>
+            <artifactId>web-push</artifactId>
+            <version>5.1.1</version>
+        </dependency>
+        <!-- Bouncy Castle Provider (needed by web-push) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId> <!-- Use jdk18on for Java 17+ -->
+            <version>1.77</version> <!-- Use a recent compatible version -->
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

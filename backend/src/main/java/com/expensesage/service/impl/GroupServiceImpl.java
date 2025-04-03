@@ -1,8 +1,10 @@
 package com.expensesage.service.impl;
 
-import java.util.Comparator; // Added
-import java.util.HashSet; // Added
-import java.util.List; // Added
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map; // Import Map
 import java.util.Optional; // Added
 import java.util.Set; // Added
 import java.util.stream.Collectors; // Added
@@ -33,8 +35,9 @@ import com.expensesage.repository.FriendshipRepository; // Added
 import com.expensesage.repository.GroupRepository; // Added
 import com.expensesage.repository.PaymentRepository; // Added
 import com.expensesage.repository.UserRepository; // Added
-import com.expensesage.service.BalanceService; // Added
+import com.expensesage.service.BalanceService;
 import com.expensesage.service.GroupService;
+import com.expensesage.service.NotificationService; // Import NotificationService
 
 @Service
 public class GroupServiceImpl implements GroupService {
@@ -49,8 +52,9 @@ public class GroupServiceImpl implements GroupService {
     private final ExpenseMapper expenseMapper;
     private final PaymentMapper paymentMapper;
     private final UserMapper userMapper;
-    private final BalanceService balanceService; // Added BalanceService field
-
+    private final BalanceService balanceService;
+    private final NotificationService notificationService; // Add NotificationService field
+  
     @Value("${expensesage.app.frontend.url:http://localhost:5173}")
     private String frontendUrlBase;
 
@@ -64,7 +68,8 @@ public class GroupServiceImpl implements GroupService {
                             ExpenseMapper expenseMapper,
                             PaymentMapper paymentMapper,
                             UserMapper userMapper,
-                            @Lazy BalanceService balanceService // Added @Lazy annotation
+                            @Lazy BalanceService balanceService,
+                            NotificationService notificationService // Inject NotificationService
                             ) {
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
@@ -74,8 +79,9 @@ public class GroupServiceImpl implements GroupService {
         this.expenseMapper = expenseMapper;
         this.paymentMapper = paymentMapper;
         this.userMapper = userMapper;
-        this.balanceService = balanceService; // Added BalanceService assignment
-    }
+        this.balanceService = balanceService;
+        this.notificationService = notificationService; // Assign NotificationService
+       }
 
     @Override
     @Transactional
@@ -112,10 +118,28 @@ public class GroupServiceImpl implements GroupService {
         }
 
         group.addMember(memberToAdd);
+        Group savedGroup = groupRepository.save(group);
         logger.info("Added friend {} to group {}", memberEmail, group.getName());
-        return groupRepository.save(group);
-
-    }
+      
+        // --- Send Notification ---
+        try {
+            String title = "Added to Group";
+            String body = String.format("You have been added to the group '%s' by %s.",
+                                        savedGroup.getName(),
+                                        currentUser.getName());
+            // Payload for frontend to navigate on click
+            Map<String, String> payload = new HashMap<>(); // Use HashMap
+            payload.put("type", "added_to_group");
+            payload.put("groupId", savedGroup.getId().toString());
+            notificationService.sendNotification(memberToAdd, title, body, payload);
+        } catch (Exception e) {
+            // Log notification error but don't fail the add member operation
+            logger.error("Failed to send notification to user {} for being added to group {}: {}",
+                         memberToAdd.getEmail(), savedGroup.getId(), e.getMessage());
+        }
+      
+        return savedGroup;
+       }
 
 
     @Override
