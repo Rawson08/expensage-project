@@ -71,8 +71,7 @@ class BalanceServiceImplTest {
         user2 = new User(2L, "Bob", "bob@example.com", "pwd", LocalDateTime.now(), true, null, null, null, null);
         user3 = new User(3L, "Charlie", "charlie@example.com", "pwd", LocalDateTime.now(), true, null, null, null, null);
 
-        // Add simplifyDebts (false) to the Group constructor call
-        group1 = new Group(10L, "Test Group", LocalDateTime.now(), user1, new HashSet<>(Arrays.asList(user1, user2, user3)), new HashSet<>(), false);
+        group1 = new Group(10L, "Test Group", LocalDateTime.now(), user1, new HashSet<>(Arrays.asList(user1, user2, user3)), new HashSet<>());
 
         // --- Sample Data ---
         expense1 = new Expense();

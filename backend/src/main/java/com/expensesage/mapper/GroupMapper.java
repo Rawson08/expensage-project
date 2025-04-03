@@ -50,8 +50,7 @@ public class GroupMapper {
                 group.getCreatedAt(),
                 userMapper.toUserResponse(group.getCreator()), // Map the creator
                 memberDtos,
-                paymentDtos, // Add mapped payments
-                group.isSimplifyDebts()); // Add simplifyDebts setting
+                paymentDtos); // Add mapped payments
     }
 
     public List<GroupResponseDto> toGroupResponseDtoList(List<Group> groups) {

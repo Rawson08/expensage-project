@@ -1,5 +1,5 @@
 import apiClient from './api';
-import { GroupCreateRequest, GroupResponseDto, AddMemberRequest, TransactionDto, GroupSettingsUpdateRequest } from '../types/api'; // Added GroupSettingsUpdateRequest
+import { GroupCreateRequest, GroupResponseDto, AddMemberRequest, TransactionDto } from '../types/api';
 
 // Fetches all groups for the current user
 export const getMyGroups = async (): Promise<GroupResponseDto[]> => {
@@ -66,15 +66,5 @@ export const deleteGroup = async (groupId: number): Promise<void> => {
         await apiClient.delete(`/groups/${groupId}`);
     } catch (error: any) {
         throw error.response?.data || new Error(`Failed to delete group ${groupId}`);
-    }
-};
- 
-// Updates group settings (e.g., simplify debts)
-export const updateGroupSettings = async (groupId: number, settingsData: GroupSettingsUpdateRequest): Promise<GroupResponseDto> => {
-    try {
-        const response = await apiClient.put<GroupResponseDto>(`/groups/${groupId}/settings`, settingsData);
-        return response.data;
-    } catch (error: any) {
-        throw error.response?.data || new Error(`Failed to update settings for group ${groupId}`);
     }
 };

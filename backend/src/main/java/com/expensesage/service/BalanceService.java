@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.expensesage.dto.BalanceDto;
 import com.expensesage.dto.OverallBalanceSummaryDto; // Added import
-import com.expensesage.dto.SimplifiedPaymentDto; // Added
 import com.expensesage.model.User;
 
 public interface BalanceService {
@@ -37,14 +36,5 @@ public interface BalanceService {
      * @return BalanceDto representing the net amount userA owes userB (negative) or userB owes userA (positive).
      */
     BalanceDto getBalanceBetweenUsers(User userA, User userB);
- 
-    /**
-     * Calculates the minimum set of payments required to settle all debts within a group.
-     *
-     * @param groupId     The ID of the group.
-     * @param currentUser The user requesting the calculation (must be a member).
-     * @return A list of SimplifiedPaymentDto objects representing the suggested payments.
-     * @throws RuntimeException if group not found or user is not a member.
-     */
-    List<SimplifiedPaymentDto> getSimplifiedGroupPayments(Long groupId, User currentUser);
+
 }

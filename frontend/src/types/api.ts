@@ -28,7 +28,6 @@ export interface GroupResponseDto {
   creator: UserResponse;
   members: UserResponse[];
   payments: PaymentResponseDto[]; // Added payments list
-  simplifyDebts: boolean; // Added debt simplification setting
 }
 
 export interface GroupCreateRequest {
@@ -37,10 +36,6 @@ export interface GroupCreateRequest {
 
 export interface AddMemberRequest {
   memberEmail: string;
-}
- 
-export interface GroupSettingsUpdateRequest {
-  simplifyDebts: boolean;
 }
 
 export interface PayerResponseDto {
@@ -155,13 +150,4 @@ export interface CommentResponseDto {
     createdAt: string; // Assuming ISO string format
     author: UserResponse;
     expenseId: number;
-}
-
-// --- Balance / Debt Simplification Types ---
-
-export interface SimplifiedPaymentDto {
-    fromUser: UserResponse;
-    toUser: UserResponse;
-    amount: number; // Assuming number, adjust if backend uses BigDecimal string
-    currency: string;
 }

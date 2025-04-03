@@ -2,15 +2,13 @@ package com.expensesage.service.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList; // Added
-import java.util.Comparator; // Added
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
- 
+
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.expensesage.dto.BalanceDto;
 import com.expensesage.dto.OverallBalanceSummaryDto;
-import com.expensesage.dto.SimplifiedPaymentDto; // Added
 import com.expensesage.mapper.UserMapper;
 import com.expensesage.model.Balance;
 import com.expensesage.model.Expense;
@@ -235,126 +232,4 @@ public class BalanceServiceImpl implements BalanceService {
 
     // Removed calculatePairwiseBalanceDynamically helper
     // updateBalancesForExpense and updateBalancesForPayment are removed
- 
-    // --- Debt Simplification Logic ---
- 
-    /**
-     * Calculates the net balance for each member within a group.
-     * Positive means the member is owed money overall within the group.
-     * Negative means the member owes money overall within the group.
-     *
-     * @param group The group entity.
-     * @return A map where keys are User entities and values are their net balances.
-     */
-    private Map<User, BigDecimal> calculateGroupNetBalances(Group group) {
-        Set<User> members = group.getMembers();
-        Map<User, BigDecimal> netBalances = new HashMap<>();
-        members.forEach(member -> netBalances.put(member, BigDecimal.ZERO));
- 
-        List<Expense> groupExpenses = expenseRepository.findByGroup(group);
-        List<Payment> groupPayments = paymentRepository.findByGroup(group);
- 
-        // Eager fetch details
-        groupExpenses.forEach(exp -> {
-            Hibernate.initialize(exp.getPayers());
-            exp.getPayers().forEach(p -> Hibernate.initialize(p.getUser()));
-            Hibernate.initialize(exp.getSplits());
-            exp.getSplits().forEach(s -> Hibernate.initialize(s.getOwedBy()));
-        });
-        groupPayments.forEach(p -> {
-            Hibernate.initialize(p.getPaidBy());
-            Hibernate.initialize(p.getPaidTo());
-        });
- 
-        // Process Expenses
-        for (Expense expense : groupExpenses) {
-            expense.getPayers().forEach(payer ->
-                netBalances.merge(payer.getUser(), payer.getAmountPaid(), BigDecimal::add)
-            );
-            expense.getSplits().forEach(split ->
-                netBalances.merge(split.getOwedBy(), split.getAmountOwed().negate(), BigDecimal::add)
-            );
-        }
- 
-        // Process Payments
-        for (Payment payment : groupPayments) {
-            netBalances.merge(payment.getPaidBy(), payment.getAmount(), BigDecimal::add); // User who paid gets "credit"
-            netBalances.merge(payment.getPaidTo(), payment.getAmount().negate(), BigDecimal::add); // User who received gets "debit"
-        }
- 
-        // Filter out near-zero balances
-        netBalances.entrySet().removeIf(entry -> entry.getValue().abs().compareTo(ZERO_THRESHOLD) < 0);
- 
-        return netBalances;
-    }
- 
-    @Override // Keep only one annotation
-    @Transactional(readOnly = true)
-    public List<SimplifiedPaymentDto> getSimplifiedGroupPayments(Long groupId, User currentUser) {
-        logger.info("Calculating simplified payments for group {} requested by user {}", groupId, currentUser.getId());
-        Group group = groupService.getGroupById(groupId, currentUser); // Ensures user is member
- 
-        Map<User, BigDecimal> netBalances = calculateGroupNetBalances(group);
- 
-        // Separate into debtors and creditors
-        List<Map.Entry<User, BigDecimal>> debtors = netBalances.entrySet().stream()
-                .filter(entry -> entry.getValue().compareTo(BigDecimal.ZERO) < 0)
-                .sorted(Comparator.comparing(Map.Entry::getValue)) // Sort by most negative first
-                .collect(Collectors.toList());
- 
-        List<Map.Entry<User, BigDecimal>> creditors = netBalances.entrySet().stream()
-                .filter(entry -> entry.getValue().compareTo(BigDecimal.ZERO) > 0)
-                .sorted(Comparator.comparing(Map.Entry<User, BigDecimal>::getValue).reversed()) // Sort by most positive first
-                .collect(Collectors.toList());
- 
-        List<SimplifiedPaymentDto> simplifiedPayments = new ArrayList<>();
- 
-        int debtorIdx = 0;
-        int creditorIdx = 0;
- 
-        // Greedy algorithm
-        while (debtorIdx < debtors.size() && creditorIdx < creditors.size()) {
-            Map.Entry<User, BigDecimal> debtorEntry = debtors.get(debtorIdx);
-            Map.Entry<User, BigDecimal> creditorEntry = creditors.get(creditorIdx);
- 
-            BigDecimal amountToTransfer = debtorEntry.getValue().abs().min(creditorEntry.getValue());
-            amountToTransfer = amountToTransfer.setScale(MONETARY_SCALE, RoundingMode.HALF_UP); // Scale before using
- 
-            // Only create payment if amount is significant
-            if (amountToTransfer.compareTo(ZERO_THRESHOLD) >= 0) {
-                 simplifiedPayments.add(SimplifiedPaymentDto.builder()
-                        .fromUser(userMapper.toUserResponse(debtorEntry.getKey()))
-                        .toUser(userMapper.toUserResponse(creditorEntry.getKey()))
-                        .amount(amountToTransfer)
-                        .currency(DEFAULT_CURRENCY) // Assuming single currency for now
-                        .build());
- 
-                // Update balances
-                debtorEntry.setValue(debtorEntry.getValue().add(amountToTransfer));
-                creditorEntry.setValue(creditorEntry.getValue().subtract(amountToTransfer));
-            } else {
-                 // If transfer amount is negligible, move past the smaller balance to avoid infinite loops on tiny amounts
-                 if (debtorEntry.getValue().abs().compareTo(creditorEntry.getValue()) < 0) {
-                     debtorIdx++; // Debtor owes less, move to next debtor
-                 } else {
-                     creditorIdx++; // Creditor is owed less, move to next creditor
-                 }
-                 continue; // Skip balance check below for negligible transfers
-            }
- 
- 
-            // If debtor is settled, move to the next debtor
-            if (debtorEntry.getValue().abs().compareTo(ZERO_THRESHOLD) < 0) {
-                debtorIdx++;
-            }
- 
-            // If creditor is settled, move to the next creditor
-            if (creditorEntry.getValue().abs().compareTo(ZERO_THRESHOLD) < 0) {
-                creditorIdx++;
-            }
-        }
- 
-        logger.info("Generated {} simplified payment suggestions for group {}", simplifiedPayments.size(), groupId);
-        return simplifiedPayments;
-    }
 }

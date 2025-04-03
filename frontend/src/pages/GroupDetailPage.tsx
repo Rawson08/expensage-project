@@ -4,21 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/api';
 import { deleteExpense } from '../services/expenseService';
 import { deletePayment } from '../services/paymentService';
-// Import balance service functions
-import { getGroupBalances, getSimplifiedGroupPayments } from '../services/balanceService'; 
-// Import group service functions including settings update
-import { getGroupTransactions, leaveGroup, deleteGroup, updateGroupSettings } from '../services/groupService'; 
+import { getGroupBalances } from '../services/balanceService';
+import { getGroupTransactions, leaveGroup, deleteGroup } from '../services/groupService';
 // Import comment service functions
 import { getCommentsForExpense, addCommentToExpense, deleteComment } from '../services/commentService'; 
-// Import types including simplification related
-import { GroupResponseDto, ExpenseResponseDto, BalanceDto, PaymentResponseDto, TransactionDto, PayerResponseDto, CommentResponseDto, CommentCreateRequest, SimplifiedPaymentDto, GroupSettingsUpdateRequest } from '../types/api'; 
+// Import comment types
+import { GroupResponseDto, ExpenseResponseDto, BalanceDto, PaymentResponseDto, TransactionDto, PayerResponseDto, CommentResponseDto, CommentCreateRequest } from '../types/api'; 
 import AddExpenseForm from '../components/AddExpenseForm';
 import AddMemberForm from '../components/AddMemberForm';
 import AddPaymentForm from '../components/AddPaymentForm';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { toast } from 'react-toastify';
-// Simple Toggle Switch Component (can be replaced with a library component)
-import ToggleSwitch from '../components/ToggleSwitch'; 
 
 // Placeholder Icon Component (Replace with actual icons later if desired)
 const PlaceholderIcon = () => (
@@ -48,37 +44,27 @@ const GroupDetailPage: React.FC = () => {
   const { user } = useAuth();
   const [group, setGroup] = useState<GroupResponseDto | null>(null);
   const [transactions, setTransactions] = useState<TransactionDto[]>([]);
-  // State for balances (pairwise or simplified)
   const [groupBalances, setGroupBalances] = useState<BalanceDto[]>([]);
-  const [simplifiedPayments, setSimplifiedPayments] = useState<SimplifiedPaymentDto[]>([]);
-  const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
-  const [balanceError, setBalanceError] = useState<string | null>(null);
-  // General loading/error
-  const [isLoading, setIsLoading] = useState(true); // For initial group/transaction load
-  const [error, setError] = useState<string | null>(null); // General error
-  // Form visibility
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showAddExpenseForm, setShowAddExpenseForm] = useState(false);
   const [showAddMemberForm, setShowAddMemberForm] = useState(false);
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
-  // Editing state
   const [editingExpense, setEditingExpense] = useState<ExpenseResponseDto | null>(null);
   const [editingPayment, setEditingPayment] = useState<PaymentResponseDto | null>(null);
-  // Modals
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmData, setConfirmData] = useState<ConfirmData | null>(null);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseResponseDto | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  // Comments state
+
+  // State for comments within the detail modal
   const [comments, setComments] = useState<CommentResponseDto[]>([]);
   const [isCommentsLoading, setIsCommentsLoading] = useState<boolean>(false);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [newCommentContent, setNewCommentContent] = useState<string>('');
   const [isPostingComment, setIsPostingComment] = useState<boolean>(false);
-  // Settings state
-  const [isUpdatingSettings, setIsUpdatingSettings] = useState<boolean>(false);
 
 
-  // Fetches initial group details and transactions (for expenses)
   const fetchGroupData = useCallback(async () => {
       if (!groupId) {
         setError("Group ID not found in URL.");
@@ -93,21 +79,25 @@ const GroupDetailPage: React.FC = () => {
              throw new Error("Invalid Group ID format.");
         }
 
-        // Fetch group details (includes payments and simplifyDebts setting)
+        // Fetch group details (which now includes payments)
         const groupPromise = apiClient.get<GroupResponseDto>(`/groups/${numericGroupId}`);
-        // Fetch transactions (used primarily for expenses now)
+        const balancesPromise = getGroupBalances(numericGroupId);
+        // We still fetch transactions for expenses, but payments come from groupPromise
         const transactionsPromise = getGroupTransactions(numericGroupId); 
 
-        const [groupResponse, transactionsResponse] = await Promise.all([
+        const [groupResponse, balancesResponse, transactionsResponse] = await Promise.all([
             groupPromise,
-            transactionsPromise 
+            balancesPromise,
+            transactionsPromise // Keep fetching transactions for expenses
         ]);
 
         // Sort transactions (expenses) by date
         transactionsResponse.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        setGroup(groupResponse.data); // Set group state (triggers balance fetch via useEffect)
-        setTransactions(transactionsResponse); // Store all transactions
+        setGroup(groupResponse.data); // Group data now includes payments
+        setGroupBalances(balancesResponse);
+        // Store all transactions
+        setTransactions(transactionsResponse); 
 
       } catch (err: any) {
         console.error("Failed to fetch group data:", err);
@@ -116,38 +106,12 @@ const GroupDetailPage: React.FC = () => {
         toast.error(errorMsg);
         setGroup(null);
         setGroupBalances([]);
-        setSimplifiedPayments([]);
         setTransactions([]);
       } finally {
-        setIsLoading(false); // Only set main loading false here
+        setIsLoading(false);
       }
     }, [groupId]);
 
-  // Fetches balances (pairwise or simplified) based on group setting
-  const fetchBalances = useCallback(async (numericGroupId: number, simplify: boolean) => {
-      setIsBalanceLoading(true);
-      setBalanceError(null);
-      setGroupBalances([]); // Clear previous balances
-      setSimplifiedPayments([]); // Clear previous simplified payments
-      try {
-          if (simplify) {
-              const simplified = await getSimplifiedGroupPayments(numericGroupId);
-              setSimplifiedPayments(simplified);
-          } else {
-              const pairwise = await getGroupBalances(numericGroupId);
-              setGroupBalances(pairwise);
-          }
-      } catch (err: any) {
-          console.error("Failed to fetch balances:", err);
-          const balanceErrorMsg = err.message || 'Could not load balances.';
-          setBalanceError(balanceErrorMsg);
-          toast.error(balanceErrorMsg);
-      } finally {
-          setIsBalanceLoading(false);
-      }
-  }, []); // Empty dependency array, relies on arguments
-
-  // Initial data fetch
   useEffect(() => {
     if (user && groupId) {
       fetchGroupData();
@@ -160,33 +124,25 @@ const GroupDetailPage: React.FC = () => {
     }
   }, [groupId, user, fetchGroupData]);
 
-  // Fetch balances whenever group ID or simplify setting changes
-  useEffect(() => {
-      if (group?.id && group.simplifyDebts !== undefined) {
-          fetchBalances(group.id, group.simplifyDebts);
-      }
-  }, [group?.id, group?.simplifyDebts, fetchBalances]);
-
-
   const handleExpenseSaved = (_savedExpense: ExpenseResponseDto) => {
     setShowAddExpenseForm(false);
     setEditingExpense(null);
     toast.success(editingExpense ? "Expense updated!" : "Expense added!");
-    fetchGroupData(); // Refetch all data
+    fetchGroupData();
   };
 
   const handleMemberAdded = (updatedGroup: GroupResponseDto) => {
-      setGroup(updatedGroup); // Update group state
+      setGroup(updatedGroup);
       setShowAddMemberForm(false);
       toast.success("Member added successfully!");
-      // Balances will refetch via useEffect
+      fetchGroupData();
   };
 
   const handlePaymentSaved = (_savedPayment: PaymentResponseDto) => {
       setShowAddPaymentForm(false);
       setEditingPayment(null);
       toast.success(editingPayment ? "Payment updated!" : "Payment added!");
-      fetchGroupData(); // Refetch all data
+      fetchGroupData();
   };
 
   // Called from Detail Modal Edit button
@@ -249,7 +205,7 @@ const GroupDetailPage: React.FC = () => {
             }
             // Refetch group data only if the action wasn't leaving/deleting group or deleting comment
             if (type !== 'leave_group' && type !== 'delete_group' && type !== 'delete_comment') { 
-                fetchGroupData(); // Refetch group data, which triggers balance refetch
+                fetchGroupData(); 
             }
         } catch (err: any) {
             const errorMsg = `Failed to ${type.replace('_', ' ')}: ${err.message || 'Unknown error'}`;
@@ -324,24 +280,6 @@ const GroupDetailPage: React.FC = () => {
   };
   // --- End Comment Handling Logic ---
 
-  // --- Settings Handling Logic ---
-  const handleToggleSimplifyDebts = async (simplify: boolean) => {
-      if (!group?.id) return;
-      setIsUpdatingSettings(true);
-      try {
-          const settingsData: GroupSettingsUpdateRequest = { simplifyDebts: simplify };
-          const updatedGroup = await updateGroupSettings(group.id, settingsData);
-          setGroup(updatedGroup); // Update local group state, triggering balance refetch via useEffect
-          toast.success(`Debt simplification ${simplify ? 'enabled' : 'disabled'}.`);
-      } catch (err: any) {
-          console.error("Failed to update group settings:", err);
-          toast.error(err.message || "Failed to update settings.");
-      } finally {
-          setIsUpdatingSettings(false);
-      }
-  };
-  // --- End Settings Handling Logic ---
-
 
   const handleLeaveGroup = () => {
       if (!user || !groupId) return;
@@ -411,7 +349,7 @@ const GroupDetailPage: React.FC = () => {
   // --- End Calculation Helpers ---
 
 
-  if (isLoading) return <p>Loading group details...</p>; // Main loading state
+  if (isLoading) return <p>Loading group details...</p>;
   if (error && !group) return <p className="text-red-500">Error: {error}</p>;
   if (!group) return <p>Group not found.</p>;
 
@@ -451,22 +389,7 @@ const GroupDetailPage: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
        <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4"> {/* Container for title and toggle */}
-            <h2 className="text-2xl font-bold">Group: {group.name}</h2>
-            {/* Debt Simplification Toggle (only for creator) */}
-            {isCreator && (
-                <div className="flex items-center space-x-2">
-                    <ToggleSwitch
-                        id="simplify-toggle"
-                        checked={group.simplifyDebts}
-                        onChange={handleToggleSimplifyDebts}
-                        disabled={isUpdatingSettings}
-                    />
-                    <label htmlFor="simplify-toggle" className="text-sm text-gray-600">Simplify Debts</label>
-                    {isUpdatingSettings && <span className="text-xs text-gray-500">(Updating...)</span>}
-                </div>
-            )}
-        </div>
+        <h2 className="text-2xl font-bold">Group: {group.name}</h2>
         <div className="flex space-x-2">
             <button onClick={() => { setEditingPayment(null); setShowAddPaymentForm(true); }} className="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out" title="Add Payment">
                 <img src="/add-payment-icon.png" alt="Add Payment" className="w-6 h-6" />
@@ -504,52 +427,22 @@ const GroupDetailPage: React.FC = () => {
               </ul>
           </div>
 
-           {/* Group Balances / Simplified Payments */}
+           {/* Group Balances */}
            <div className="p-4 bg-white shadow rounded-lg">
-                <h3 className="text-lg font-semibold mb-3">
-                    {group.simplifyDebts ? 'Simplified Debts' : 'Group Balances'}
-                </h3>
-                {isBalanceLoading && <p className="text-gray-500">Loading balances...</p>}
-                {balanceError && <p className="text-red-500 text-sm">Error: {balanceError}</p>}
-                
-                {!isBalanceLoading && !balanceError && (
-                    <>
-                        {/* Display Simplified Payments */}
-                        {group.simplifyDebts && simplifiedPayments.length === 0 && (
-                            <p className="text-gray-500">Everyone is settled up!</p>
-                        )}
-                        {group.simplifyDebts && simplifiedPayments.length > 0 && (
-                            <ul className="divide-y divide-gray-200">
-                                {simplifiedPayments.map((payment, index) => (
-                                    <li key={index} className="py-3 flex justify-between items-center text-sm">
-                                        <span>
-                                            <strong>{payment.fromUser.id === user?.id ? 'You' : payment.fromUser.name}</strong> pay <strong>{payment.toUser.id === user?.id ? 'You' : payment.toUser.name}</strong>
-                                        </span>
-                                        <span className="font-medium text-blue-600">
-                                            {formatCurrency(payment.amount, payment.currency)}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-
-                        {/* Display Pairwise Balances */}
-                        {!group.simplifyDebts && groupBalances.length === 0 && (
-                            <p className="text-gray-500">Everyone is settled up within this group.</p>
-                        )}
-                        {!group.simplifyDebts && groupBalances.length > 0 && (
-                            <ul className="divide-y divide-gray-200">
-                                {groupBalances.map((balance) => (
-                                    <li key={balance.otherUser.id} className="py-3 flex justify-between items-center">
-                                        <span>{balance.otherUser.name}</span>
-                                        <span className={`font-medium ${balance.netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            {balance.netAmount >= 0 ? 'owes you' : 'you owe'} {formatCurrency(Math.abs(balance.netAmount), balance.currency)}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </>
+                <h3 className="text-lg font-semibold mb-3">Group Balances</h3>
+                {groupBalances.length === 0 ? (
+                  <p className="text-gray-500">Everyone is settled up within this group.</p>
+                ) : (
+                  <ul className="divide-y divide-gray-200">
+                    {groupBalances.map((balance) => (
+                      <li key={balance.otherUser.id} className="py-3 flex justify-between items-center">
+                        <span>{balance.otherUser.name}</span>
+                        <span className={`font-medium ${balance.netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {balance.netAmount >= 0 ? 'owes you' : 'you owe'} {formatCurrency(Math.abs(balance.netAmount), balance.currency)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 )}
            </div>
       </div>
