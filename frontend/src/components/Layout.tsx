@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
+import InstallPwaButton from './InstallPwaButton'; // Import the new component
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // const [showInstallPrompt, setShowInstallPrompt] = useState(false); // Remove old state
 
   const handleLogout = () => {
     logout();
@@ -19,7 +20,11 @@ const Layout: React.FC = () => {
   // Close mobile menu when a link is clicked
   const closeMobileMenu = () => {
       setIsMobileMenuOpen(false);
+      // setShowInstallPrompt(false); // Remove old state usage
   }
+
+  // Remove old handler function
+  // const handleInstallClick = (os: 'android' | 'ios') => { ... };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -52,6 +57,12 @@ const Layout: React.FC = () => {
                   >
                     Friends
                   </Link>
+                  <Link
+                    to="/app/help"
+                    className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Help
+                  </Link>
                 </div>
               )}
             </div>
@@ -74,8 +85,10 @@ const Layout: React.FC = () => {
                 </div>
               )}
             </div>
-            {/* Mobile Menu Button */}
+            {/* Mobile Right-Side Buttons (Menu + Install) */}
             <div className="-mr-2 flex items-center sm:hidden">
+                {/* Install Button - Placed before hamburger */}
+                <InstallPwaButton />
               <button
                 onClick={toggleMobileMenu}
                 type="button"
@@ -115,8 +128,17 @@ const Layout: React.FC = () => {
                 >
                   Friends
                 </Link>
+                <Link
+                  to="/app/help"
+                  onClick={closeMobileMenu}
+                  className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+                >
+                  Help
+                </Link>
+                {/* Old Install button removed */}
               </>
             )}
+            {/* Removed old install prompt logic from here */}
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
             {user ? (

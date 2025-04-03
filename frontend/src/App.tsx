@@ -16,6 +16,7 @@ import FriendsPage from './pages/FriendsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import HelpPage from './pages/HelpPage'; // Import HelpPage
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
             <Route path="/app" element={<DashboardPage />} />
             <Route path="/app/group/:groupId" element={<GroupDetailPage />} />
             <Route path="/app/friends" element={<FriendsPage />} />
+            <Route path="/app/help" element={<HelpPage />} /> {/* Add HelpPage route */}
             {/* Add other protected app routes here */}
           </Route>
 

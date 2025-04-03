@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import InstallPwaButton from '../components/InstallPwaButton'; // Import the component
 
 // Example icons
 const FeatureIcon = () => <svg className="w-8 h-8 text-green-500 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>;
@@ -41,7 +42,11 @@ const LandingPage: React.FC = () => {
           <div className="text-2xl font-bold text-green-600">
             ExpenSage
           </div>
-          <div>
+          <div className="flex items-center"> {/* Use flex container */}
+               {/* Install Button - Mobile Only */}
+               <div className="sm:hidden mr-2"> {/* Hide on sm screens and up, add margin */}
+                   <InstallPwaButton />
+               </div>
             <Link to="/login" className="text-gray-600 hover:text-green-600 font-medium py-2 px-4 rounded mr-2">
               Login
             </Link>
