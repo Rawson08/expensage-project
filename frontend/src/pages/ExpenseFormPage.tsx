@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Removed useCallback
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { createExpense } from '../services/expenseService';
 import apiClient from '../services/api';
 import { AxiosError } from 'axios';
-import { GroupResponseDto, UserResponse, ExpenseCreateRequest, PayerDetailDto, SplitDetailDto, FriendshipResponseDto } from '../types/api';
+import { UserResponse, ExpenseCreateRequest, PayerDetailDto, SplitDetailDto } from '../types/api'; // Removed GroupResponseDto, FriendshipResponseDto
 import { toast } from 'react-toastify';
-import { XMarkIcon, CalendarIcon, UserGroupIcon, CameraIcon, DocumentTextIcon, CurrencyDollarIcon, Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CalendarIcon, UserGroupIcon, CameraIcon, CurrencyDollarIcon, Bars3BottomLeftIcon } from '@heroicons/react/24/outline'; // Removed DocumentTextIcon
 import DateSelectionModal from '../components/DateSelectionModal';
 import SplitOptionsModal from '../components/SplitOptionsModal';
 // PayerSelectionModal is removed as we use direct input
@@ -368,7 +368,7 @@ const ExpenseFormPage: React.FC = () => {
                 currentUser={user as UserResponse | null}
                 currentSplitType={splitType}
                 currentSplits={[]} // Pass empty array for now
-                totalAmount={parseFloat(amount) || 0}
+                // totalAmount prop removed from modal
                 onSaveSplits={handleSaveSplits}
             />
             {/* PayerSelectionModal removed */}

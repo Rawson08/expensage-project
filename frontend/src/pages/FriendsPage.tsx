@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react'; // Removed useCallback
 import { Link } from 'react-router-dom'; // Import Link
-import { FriendshipResponseDto, ExpenseResponseDto, OverallBalanceSummaryDto } from '../types/api'; // Added ExpenseResponseDto, OverallBalanceSummaryDto
+import { FriendshipResponseDto, ExpenseResponseDto, UserResponse } from '../types/api'; // Removed OverallBalanceSummaryDto, added UserResponse
 import { toast } from 'react-toastify';
 import ConfirmationModal from '../components/ConfirmationModal';
-import { UserIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+// Removed unused UserIcon, DocumentTextIcon
 import Avatar from '../components/Avatar'; // Import Avatar component
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext'; // Re-add useData import
@@ -12,8 +12,7 @@ import { useData } from '../context/DataContext'; // Re-add useData import
 // import { getMyExpenses } from '../services/expenseService';
 import {
     // Keep friendship service functions needed for actions
-    getIncomingRequests,
-    getOutgoingRequests,
+    // Removed unused getIncomingRequests, getOutgoingRequests
     sendFriendRequest,
     acceptFriendRequest,
     rejectFriendRequest,

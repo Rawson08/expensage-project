@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react'; // Removed useCallback
 import { useAuth } from '../context/AuthContext'; // Keep for user ID check
 import { useData } from '../context/DataContext'; // Import useData
 // Remove service imports for data now in context
@@ -6,7 +6,7 @@ import { useData } from '../context/DataContext'; // Import useData
 // import { getMyGroups } from '../services/groupService';
 import { ExpenseResponseDto, GroupResponseDto } from '../types/api'; // Keep types
 import { format } from 'date-fns';
-import { ReceiptPercentIcon, ShoppingCartIcon, UserGroupIcon } from '@heroicons/react/24/outline'; // Keep icons
+import { ReceiptPercentIcon, UserGroupIcon } from '@heroicons/react/24/outline'; // Removed ShoppingCartIcon
 
 // TODO: Define a type for the combined/processed activity item
 interface ActivityItem {
@@ -134,7 +134,7 @@ const ActivityPage: React.FC = () => {
                      {activities.map(activity => {
                          const amount = activity.amountChange ?? 0;
                          const isCredit = amount > 0; // User gets money back
-                         const isDebit = amount < 0; // User paid / owes more
+                         // const isDebit = amount < 0; // Unused variable
 
                          // Choose icon based on activity type
                          const IconComponent = activity.type === 'group_created'

@@ -77,12 +77,12 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // Basic install/activate listeners (vite-plugin-pwa might handle this better)
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (_event) => { // Mark event as unused
     console.log('[Service Worker] Install');
     // event.waitUntil(self.skipWaiting()); // Optional: Force activation
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', (_event) => { // Mark event as unused
     console.log('[Service Worker] Activate');
     // event.waitUntil(self.clients.claim()); // Optional: Take control immediately
 });

@@ -13,7 +13,7 @@ import AddMemberForm from '../components/AddMemberForm';
 import AddPaymentForm from '../components/AddPaymentForm';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { toast } from 'react-toastify';
-import { Cog6ToothIcon, XMarkIcon, ReceiptPercentIcon, BanknotesIcon } from '@heroicons/react/24/outline'; // Added relevant icons
+import { XMarkIcon, ReceiptPercentIcon, BanknotesIcon } from '@heroicons/react/24/outline'; // Removed Cog6ToothIcon
 
 // Type guard function to check if a transaction is an expense
 function isExpense(tx: TransactionDto): tx is ExpenseResponseDto {
@@ -173,7 +173,7 @@ const GroupDetailPage: React.FC = () => {
       finally { setIsPostingComment(false); }
   };
   const handleDeleteCommentClick = (commentId: number) => { openConfirmModal('delete_comment', commentId, 'this comment'); };
-  const handleLeaveGroup = () => { if (!user || !groupId) return; openConfirmModal('leave_group'); };
+  // const handleLeaveGroup = () => { if (!user || !groupId) return; openConfirmModal('leave_group'); }; // Removed unused handler
   const handleDeleteGroup = () => { if (!groupId) return; openConfirmModal('delete_group'); };
   const handleEditPaymentClick = (payment: PaymentResponseDto) => { setEditingPayment(payment); setShowAddPaymentForm(true); };
 

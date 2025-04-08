@@ -4,13 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { getFriends } from '../services/friendshipService';
 import { getMyGroups } from '../services/groupService';
 import { FriendshipResponseDto, GroupResponseDto } from '../types/api';
-import { XMarkIcon, MagnifyingGlassIcon, UserIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/24/outline'; // Removed UserIcon
 import { toast } from 'react-toastify';
 import Avatar from '../components/Avatar'; // Import Avatar component
 
 const SelectExpenseTargetPage: React.FC = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    // const { user } = useAuth(); // Removed unused user variable
     const [friends, setFriends] = useState<FriendshipResponseDto[]>([]);
     const [groups, setGroups] = useState<GroupResponseDto[]>([]);
     const [searchTerm, setSearchTerm] = useState('');

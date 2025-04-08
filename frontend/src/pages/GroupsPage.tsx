@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react'; // Removed useEffect, useCallback
 import { Link } from 'react-router-dom';
 import { UserGroupIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon, PlusCircleIcon, XMarkIcon } from '@heroicons/react/24/outline'; // Removed UserPlusIcon, Added XMarkIcon
 import { useAuth } from '../context/AuthContext'; // Keep useAuth for user ID if needed
 import { useData } from '../context/DataContext'; // Import useData hook
 // import { getGroupBalances } from '../services/balanceService'; // Remove service import, data comes from context
-import { GroupResponseDto, BalanceDto, ExpenseResponseDto } from '../types/api'; // Keep needed types (added ExpenseResponseDto back for getPayerString)
+import { GroupResponseDto, ExpenseResponseDto } from '../types/api'; // Removed BalanceDto
 import CreateGroupForm from '../components/CreateGroupForm';
 import FilterModal from '../components/FilterModal'; // Keep single import
 
@@ -62,10 +62,7 @@ const GroupsPage: React.FC = () => {
     }
   };
 
-  const getPayerString = (payers: ExpenseResponseDto['payers']): string => {
-      if (!payers || payers.length === 0) return 'Unknown';
-      return payers.map(p => p.user ? `${p.user.id === user?.id ? 'You' : p.user.name} (${formatCurrency(p.amountPaid, 'USD')})` : 'Unknown Payer').join(', ');
-  };
+  // Removed unused getPayerString function
 
   const handleToggleSearch = () => {
       setShowSearchInput(prev => !prev);
@@ -201,7 +198,7 @@ const GroupsPage: React.FC = () => {
                         if (netBalance === undefined) return null; // Should not happen, but safe guard
 
                         const isOwed = netBalance > 0;
-                        const isOwing = netBalance < 0;
+                        // const isOwing = netBalance < 0; // Removed unused variable
                         const balanceAmount = Math.abs(netBalance);
 
                         return (

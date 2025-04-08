@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react'; // Removed useEffect, useCallback
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext'; // Use context for friends
-import { UserResponse, PaymentResponseDto, PaymentCreateRequest, FriendshipResponseDto } from '../types/api';
+import { PaymentCreateRequest } from '../types/api'; // Removed UserResponse, PaymentResponseDto, FriendshipResponseDto
 import { recordPayment } from '../services/paymentService'; // Only need recordPayment
 import { toast } from 'react-toastify';
 import { XMarkIcon } from '@heroicons/react/24/outline';
@@ -14,7 +14,7 @@ const RecordPaymentPage: React.FC = () => {
   const { friends: contextFriends, isLoading: isContextLoading, error: contextError, fetchData: refreshDataContext } = useData();
 
   // Form State
-  const [paidUserId, setPaidUserId] = useState<string>(''); // Can be paidTo or paidBy depending on direction
+  const [otherUserId, setOtherUserId] = useState<string>(''); // Renamed state variable
   const [paymentDirection, setPaymentDirection] = useState<'paidTo' | 'receivedFrom'>('paidTo'); // User paid someone vs received from someone
   const [amount, setAmount] = useState<string>('');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -28,22 +28,22 @@ const RecordPaymentPage: React.FC = () => {
     event.preventDefault();
     setError(null);
 
-    if (!paidUserId || !amount || parseFloat(amount) <= 0) {
+    if (!otherUserId || !amount || parseFloat(amount) <= 0) { // Use renamed state variable
       setError('Please select a friend and enter a valid positive amount.');
       return;
     }
 
-    const numericPaidUserId = parseInt(paidUserId, 10);
+    const numericOtherUserId = parseInt(otherUserId, 10); // Use renamed state variable
     const numericAmount = parseFloat(amount);
 
-    if (isNaN(numericPaidUserId) || isNaN(numericAmount) || !user) {
+    if (isNaN(numericOtherUserId) || isNaN(numericAmount) || !user) { // Use renamed state variable
         setError('Invalid user ID or amount.');
         return;
     }
 
-    // Determine paidByUserId and paidToUserId based on direction
-    const paidByUserId = paymentDirection === 'paidTo' ? user.id : numericPaidUserId;
-    const paidToUserIdFinal = paymentDirection === 'paidTo' ? numericPaidUserId : user.id;
+    // Determine paidToUserId based on direction (paidBy is inferred by backend)
+    const paidToUserIdFinal = paymentDirection === 'paidTo' ? numericOtherUserId : user.id;
+    // const paidByUserId = paymentDirection === 'paidTo' ? user.id : numericOtherUserId; // paidByUserId is not needed in request
 
     const paymentData: PaymentCreateRequest = {
       paidToUserId: paidToUserIdFinal,
@@ -56,7 +56,7 @@ const RecordPaymentPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const savedPayment = await recordPayment(paymentData);
+      await recordPayment(paymentData); // Don't need to store savedPayment if unused
       toast.success("Payment recorded successfully!");
       refreshDataContext(); // Refresh data context
       navigate('/app/activity'); // Navigate to activity feed after saving
@@ -79,7 +79,7 @@ const RecordPaymentPage: React.FC = () => {
         <header className="flex items-center justify-between p-4 bg-white border-b flex-shrink-0">
             <button onClick={() => navigate(-1)} className="text-gray-600"><XMarkIcon className="h-6 w-6" /></button>
             <h1 className="text-lg font-semibold">Record a Payment</h1>
-            <button onClick={handleSubmit} disabled={loading || !paidUserId || !amount} className="text-blue-600 font-semibold disabled:opacity-50">
+            <button onClick={handleSubmit} disabled={loading || !otherUserId || !amount} className="text-blue-600 font-semibold disabled:opacity-50"> {/* Use renamed state variable */}
                 {loading ? 'Saving...' : 'Save'}
             </button>
         </header>
@@ -112,8 +112,8 @@ const RecordPaymentPage: React.FC = () => {
                     </label>
                     <select
                     id="paidUser"
-                    value={paidUserId}
-                    onChange={(e) => setPaidUserId(e.target.value)}
+                    value={otherUserId} // Use renamed state variable
+                    onChange={(e) => setOtherUserId(e.target.value)} // Use renamed state variable setter
                     required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
                     disabled={loading || friendOptions.length === 0}

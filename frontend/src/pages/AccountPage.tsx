@@ -1,8 +1,8 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
-    ChevronRightIcon, QrCodeIcon, CreditCardIcon, ShieldCheckIcon, StarIcon,
-    BellIcon, LockClosedIcon, ChatBubbleLeftRightIcon, QuestionMarkCircleIcon, ArrowLeftOnRectangleIcon,
+    ChevronRightIcon, QrCodeIcon, StarIcon, // Removed CreditCardIcon, ShieldCheckIcon
+    BellIcon, LockClosedIcon, ChatBubbleLeftRightIcon, QuestionMarkCircleIcon, // Removed ArrowLeftOnRectangleIcon
     LinkIcon
 } from '@heroicons/react/24/outline';
 import Avatar from '../components/Avatar'; // Import Avatar component
@@ -39,7 +39,7 @@ const AccountPage: React.FC = () => {
     // Helper to render list items with optional section headers
     const renderListItems = () => {
         let lastSection: string | undefined = undefined;
-        return listItems.map((item, index) => {
+        return listItems.map((item) => { // Removed unused index parameter
             const showHeader = item.section && item.section !== lastSection;
             lastSection = item.section || lastSection; // Update last section seen
 

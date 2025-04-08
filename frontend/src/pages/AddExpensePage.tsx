@@ -6,7 +6,7 @@ import { getMyGroups } from '../services/groupService';
 import { createExpense } from '../services/expenseService';
 import { FriendshipResponseDto, GroupResponseDto, UserResponse, ExpenseCreateRequest, PayerDetailDto, SplitDetailDto } from '../types/api';
 import { toast } from 'react-toastify';
-import { XMarkIcon, ChevronDownIcon, CalendarIcon, UserGroupIcon, CameraIcon, DocumentTextIcon, CurrencyDollarIcon, Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CalendarIcon, UserGroupIcon, CameraIcon, DocumentTextIcon, CurrencyDollarIcon, Bars3BottomLeftIcon } from '@heroicons/react/24/outline'; // Removed ChevronDownIcon
 import GroupSelectionModal from '../components/GroupSelectionModal';
 import ParticipantSelectionModal from '../components/ParticipantSelectionModal';
 import DateSelectionModal from '../components/DateSelectionModal';
@@ -23,7 +23,8 @@ const AddExpensePage: React.FC = () => {
     const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
     const [selectedParticipants, setSelectedParticipants] = useState<UserResponse[]>(user ? [user as UserResponse] : []); // Start with current user
     const [splitType, setSplitType] = useState<SplitType>('EQUAL');
-    const [date, setDate] = useState<Date>(new Date()); // Default to today
+    const [date, setDate] = useState<Date>(new Date());
+    const [splitValues, setSplitValues] = useState<{ [userId: number]: string }>({}); // State for split values from modal
 
     const [friends, setFriends] = useState<FriendshipResponseDto[]>([]);
     const [groups, setGroups] = useState<GroupResponseDto[]>([]);
@@ -79,32 +80,39 @@ const AddExpensePage: React.FC = () => {
             payers = [{ userId: user.id, amountPaid: numericAmount }];
 
             // Calculate splits based on selected type
-            switch (splitType) {
-                case 'EQUAL':
-                    const numParticipants = selectedParticipants.length;
-                    if (numParticipants > 0) {
-                        const splitAmount = parseFloat((numericAmount / numParticipants).toFixed(2)); // Calculate and round to 2 decimal places
-                        // Adjust for potential rounding errors on the last person
-                        const totalSplit = splitAmount * numParticipants;
-                        const remainder = parseFloat((numericAmount - totalSplit).toFixed(2));
+            // Construct splits based on type and stored values
+            if (splitType === 'EQUAL') {
+                const numParticipants = selectedParticipants.length;
+                if (numParticipants > 0) {
+                    const splitAmount = parseFloat((numericAmount / numParticipants).toFixed(2));
+                    const totalSplit = splitAmount * numParticipants;
+                    const remainder = parseFloat((numericAmount - totalSplit).toFixed(2));
+                    splits = selectedParticipants.map((p, index) => ({
+                        userId: p.id,
+                        value: index === numParticipants - 1 ? splitAmount + remainder : splitAmount,
+                    }));
+                } else { splits = []; }
+            } else {
+                // Use stored splitValues for non-equal splits
+                splits = selectedParticipants.map(p => ({
+                    userId: p.id,
+                    value: splitValues[p.id] || '0' // Use value from state map
+                }));
 
-                        splits = selectedParticipants.map((p, index) => ({
-                            userId: p.id,
-                            value: index === numParticipants - 1 ? splitAmount + remainder : splitAmount, // Add remainder to last person
-                        }));
-                    } else {
-                        splits = []; // Should not happen if validation passes, but handle defensively
-                    }
-                    break;
-                // TODO: Implement logic for other split types (EXACT, PERCENTAGE, SHARE)
-                // These will require fetching specific values entered by the user, likely via the SplitOptionsModal
-                case 'EXACT':
-                case 'PERCENTAGE':
-                case 'SHARE':
-                default:
-                    toast.error(`Split type "${splitType}" not implemented yet.`);
-                    setIsSaving(false);
-                    return; // Stop execution if split type is not handled
+                // Validation for non-equal splits
+                if (splits.some(s => s.value === null || s.value === undefined || s.value === '' || isNaN(parseFloat(String(s.value))))) {
+                    toast.error(`Please enter a valid ${splitType.toLowerCase()} value for each participant.`);
+                    setIsSaving(false); return;
+                }
+                const totalSplitValue = splits.reduce((sum, s) => sum + parseFloat(String(s.value || '0')), 0);
+                if (splitType === 'EXACT' && Math.abs(totalSplitValue - numericAmount) > 0.01) {
+                    toast.error(`Sum of exact amounts (${totalSplitValue.toFixed(2)}) must equal the total expense amount (${numericAmount.toFixed(2)}).`);
+                    setIsSaving(false); return;
+                }
+                if (splitType === 'PERCENTAGE' && Math.abs(totalSplitValue - 100) > 0.01) {
+                    toast.error('Percentages must add up to 100.');
+                    setIsSaving(false); return;
+                }
             }
 
 
@@ -143,9 +151,10 @@ const AddExpensePage: React.FC = () => {
     const handleSplitOptions = () => {
         setIsSplitModalOpen(true); // Open split modal
    };
-    const handleSelectSplitType = (type: SplitType) => {
+    // Updated handler to receive type and values map from modal
+    const handleSaveSplits = (type: SplitType, values: { [userId: number]: string }) => {
         setSplitType(type);
-        // Modal closes itself for now
+        setSplitValues(values); // Store the raw values
     };
     const handleGroupSelection = () => {
        setIsGroupModalOpen(true); // Open the modal
@@ -283,8 +292,11 @@ const AddExpensePage: React.FC = () => {
                 isOpen={isSplitModalOpen}
                 onClose={() => setIsSplitModalOpen(false)}
                 participants={selectedParticipants}
+                currentUser={user as UserResponse | null} // Pass current user
                 currentSplitType={splitType}
-                onSelectSplitType={handleSelectSplitType}
+                currentSplits={[]} // Pass empty array for now
+                // totalAmount prop removed from modal
+                onSaveSplits={handleSaveSplits} // Pass the correct handler
             />
 
             {/* Participant Selection Modal */}

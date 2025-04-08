@@ -12,8 +12,8 @@ interface SplitOptionsModalProps {
     participants: UserResponse[];
     currentUser: UserResponse | null;
     currentSplitType: SplitType;
-    currentSplits: SplitDetailDto[]; // Used to initialize values if editing
-    totalAmount: number;
+    currentSplits: SplitDetailDto[];
+    // totalAmount: number; // Removed, validation moved to parent
     onSaveSplits: (type: SplitType, values: { [userId: number]: string }, includedIds: Set<number>) => void; // Pass back type, raw values map, and included IDs
 }
 
@@ -24,7 +24,7 @@ const SplitOptionsModal: React.FC<SplitOptionsModalProps> = ({
     currentUser,
     currentSplitType,
     currentSplits,
-    totalAmount,
+    // totalAmount, // Removed
     onSaveSplits,
 }) => {
     const [selectedType, setSelectedType] = useState<SplitType>(currentSplitType);
