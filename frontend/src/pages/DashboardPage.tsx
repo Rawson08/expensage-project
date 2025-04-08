@@ -1,23 +1,33 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { UserGroupIcon, UserIcon, DocumentTextIcon, MagnifyingGlassIcon, UserPlusIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'; // Assuming Heroicons v2 Outline
 import { useAuth } from '../context/AuthContext';
-import { getOverallBalanceSummary } from '../services/balanceService';
+import { getOverallBalanceSummary, getGroupBalances } from '../services/balanceService'; // Added getGroupBalances
 import { getMyGroups } from '../services/groupService';
 import { getMyExpenses } from '../services/expenseService';
-import { GroupResponseDto, ExpenseResponseDto, OverallBalanceSummaryDto } from '../types/api';
+import { getFriends } from '../services/friendshipService'; // Added getFriends
+import { GroupResponseDto, ExpenseResponseDto, OverallBalanceSummaryDto, BalanceDto, FriendshipResponseDto } from '../types/api'; // Added BalanceDto, FriendshipResponseDto
 import CreateGroupForm from '../components/CreateGroupForm';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [balanceSummary, setBalanceSummary] = useState<OverallBalanceSummaryDto | null>(null);
   const [groups, setGroups] = useState<GroupResponseDto[]>([]);
-  const [expenses, setExpenses] = useState<ExpenseResponseDto[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseResponseDto[]>([]); // Keep recent expenses for now, might remove later if not needed for dashboard view
+  const [groupBalancesMap, setGroupBalancesMap] = useState<{ [groupId: number]: BalanceDto[] }>({});
+  const [netGroupBalances, setNetGroupBalances] = useState<{ [groupId: number]: number }>({});
+  const [friends, setFriends] = useState<FriendshipResponseDto[]>([]); // State for friends
+  const [nonGroupNetBalance, setNonGroupNetBalance] = useState<number>(0); // State for non-group balance
   const [isLoadingBalances, setIsLoadingBalances] = useState(true);
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
   const [isLoadingExpenses, setIsLoadingExpenses] = useState(true);
+  const [isLoadingGroupBalances, setIsLoadingGroupBalances] = useState(false);
+  const [isLoadingFriends, setIsLoadingFriends] = useState(true); // Loading state for friends
   const [errorBalances, setErrorBalances] = useState<string | null>(null);
   const [errorGroups, setErrorGroups] = useState<string | null>(null);
   const [errorExpenses, setErrorExpenses] = useState<string | null>(null);
+  const [errorGroupBalances, setErrorGroupBalances] = useState<string | null>(null);
+  const [errorFriends, setErrorFriends] = useState<string | null>(null); // Error state for friends
   const [showCreateGroupForm, setShowCreateGroupForm] = useState(false);
 
   const fetchBalanceSummary = useCallback(async () => {
@@ -62,24 +72,131 @@ const DashboardPage: React.FC = () => {
       }
   }, []);
 
+  const fetchFriends = useCallback(async () => {
+      setIsLoadingFriends(true);
+      setErrorFriends(null);
+      try {
+          const data = await getFriends();
+          // Filter for accepted friends only, just in case API returns others
+          setFriends(data.filter(f => f.status === 'ACCEPTED'));
+      } catch (err: any) {
+          console.error("Failed to fetch friends:", err);
+          setErrorFriends(err.message || 'Could not load friends.');
+      } finally {
+          setIsLoadingFriends(false);
+      }
+  }, []);
 
+
+  // Fetch initial data (overall balance, groups, expenses)
+  // Fetch initial data (overall balance, groups, expenses, friends)
   useEffect(() => {
     if (user) {
       fetchBalanceSummary();
       fetchGroups();
       fetchExpenses();
+      fetchFriends(); // Fetch friends as well
     } else {
+      // Reset state if user logs out
       setIsLoadingBalances(false);
       setIsLoadingGroups(false);
       setIsLoadingExpenses(false);
+      setIsLoadingGroupBalances(false);
+      setIsLoadingFriends(false); // Reset friends loading
       setBalanceSummary(null);
       setGroups([]);
       setExpenses([]);
+      setFriends([]); // Reset friends
+      setGroupBalancesMap({});
+      setNetGroupBalances({});
+      setNonGroupNetBalance(0); // Reset non-group balance
       setErrorBalances("User not logged in.");
       setErrorGroups("User not logged in.");
       setErrorExpenses("User not logged in.");
+      setErrorGroupBalances(null);
+      setErrorFriends("User not logged in."); // Reset friends error
     }
-  }, [user, fetchBalanceSummary, fetchGroups, fetchExpenses]);
+  }, [user, fetchBalanceSummary, fetchGroups, fetchExpenses, fetchFriends]); // Added fetchFriends dependency
+
+  // Fetch and calculate balances for each group after groups are loaded
+  useEffect(() => {
+    if (groups.length > 0 && !isLoadingGroups) {
+      const fetchAllGroupBalances = async () => {
+        setIsLoadingGroupBalances(true);
+        setErrorGroupBalances(null);
+        // setErrorFriends("User not logged in."); // REMOVED - Misplaced line
+        const balancesMap: { [groupId: number]: BalanceDto[] } = {};
+        const netBalances: { [groupId: number]: number } = {};
+        let fetchError = null;
+
+        try {
+          await Promise.all(groups.map(async (group) => {
+            try {
+              const balances = await getGroupBalances(group.id);
+              balancesMap[group.id] = balances;
+              // Calculate net balance for the current user in this group
+              netBalances[group.id] = balances.reduce((sum, balance) => sum + balance.netAmount, 0);
+            } catch (groupErr: any) {
+              console.error(`Failed to fetch balances for group ${group.id}:`, groupErr);
+              // Store group-specific error or a general one? For now, set a general error.
+              fetchError = groupErr.message || `Could not load balances for group ${group.name}.`;
+              // Optionally store per-group errors if needed later
+            }
+          }));
+        } catch (overallErr) {
+            // This catch might not be strictly necessary with individual catches,
+            // but good for catching potential Promise.all issues.
+            console.error("Error fetching group balances:", overallErr);
+            fetchError = "An unexpected error occurred while fetching group balances.";
+        }
+
+
+        setGroupBalancesMap(balancesMap);
+        setNetGroupBalances(netBalances);
+        setErrorGroupBalances(fetchError); // Set the general error if any occurred
+        setIsLoadingGroupBalances(false);
+      };
+
+      fetchAllGroupBalances();
+    } else {
+        // Reset if groups list becomes empty
+        setGroupBalancesMap({});
+        setNetGroupBalances({});
+        setIsLoadingGroupBalances(false); // Ensure loading is false if no groups
+    }
+  }, [groups, isLoadingGroups]); // Dependency: run when groups array or its loading state changes
+
+
+  // Calculate net balance for non-group expenses
+  useEffect(() => {
+      if (!isLoadingExpenses && expenses.length > 0 && user) {
+          let netBalance = 0;
+          const nonGroupExpenses = expenses.filter(exp => !exp.groupId);
+
+          nonGroupExpenses.forEach(expense => {
+              // Money paid by the current user
+              const paidByUser = expense.payers.reduce((sum, payer) => {
+                  return sum + (payer.user?.id === user.id ? payer.amountPaid : 0);
+              }, 0);
+
+              // Money owed by the current user from splits
+              const owedByUser = expense.splits.reduce((sum, split) => {
+                  return sum + (split.owedBy?.id === user.id ? split.amountOwed : 0);
+              }, 0);
+
+              // Net change for this expense: (amount user should have paid) - (amount user actually paid)
+              // If positive, user is owed; if negative, user owes.
+              // Simplified: If user paid more than they owe, they are owed the difference.
+              // If user owes more than they paid, they owe the difference.
+              // Net = OwedToUser - OwedByUser = (paidByUser - owedByUser)
+              netBalance += (paidByUser - owedByUser);
+          });
+
+          setNonGroupNetBalance(netBalance);
+      } else {
+          setNonGroupNetBalance(0); // Reset if no expenses or user logs out
+      }
+  }, [expenses, isLoadingExpenses, user]); // Dependencies: expenses, loading state, user
 
   const handleGroupCreated = (newGroup: GroupResponseDto) => {
     setGroups(prevGroups => [...prevGroups, newGroup]);
@@ -104,126 +221,177 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Dashboard</h2>
+    // Mobile-first container, padding adjusted for typical mobile view
+    <div className="container mx-auto px-0 sm:px-4 pb-16"> {/* Added padding-bottom for potential bottom nav */}
+
+      {/* Header Area - Simplified for now */}
+      <div className="p-4 flex justify-between items-center">
+        {/* Placeholder for Logo/App Name */}
+        <div className="text-xl font-bold text-green-600">ExpenSage</div>
+        {/* Placeholder for Header Icons (Search, Add Friend, Filters) */}
+        <div className="flex space-x-4">
+          {/* Actual Header Icons */}
+          <button className="text-gray-600 hover:text-gray-800"><MagnifyingGlassIcon className="h-6 w-6" /></button>
+          <button className="text-gray-600 hover:text-gray-800"><UserPlusIcon className="h-6 w-6" /></button>
+          <button className="text-gray-600 hover:text-gray-800"><AdjustmentsHorizontalIcon className="h-6 w-6" /></button>
+        </div>
       </div>
 
-      {/* Top Row: Balances and Groups */}
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-        {/* Balances Section */}
-        <div className="bg-white shadow rounded-lg p-4">
-           <h3 className="text-lg font-semibold mb-3">Overall Balances</h3>
-          {isLoadingBalances && <p>Loading balances...</p>}
-          {errorBalances && <p className="text-red-500">Error: {errorBalances}</p>}
-          {!isLoadingBalances && !errorBalances && balanceSummary && (
-            <div>
-              {(balanceSummary.totalOwedToUser === 0 && balanceSummary.totalOwedByUser === 0) ? (
-                <p className="text-gray-500">You are all settled up!</p>
-              ) : (
-                <div className="space-y-2">
-                  {balanceSummary.totalOwedToUser > 0 && (
-                    <div className="text-green-600">
-                      Total you are owed: {formatCurrency(balanceSummary.totalOwedToUser, balanceSummary.currency)}
-                    </div>
-                  )}
-                  {balanceSummary.totalOwedByUser > 0 && (
-                    <div className="text-red-600">
-                      Total you owe: {formatCurrency(balanceSummary.totalOwedByUser, balanceSummary.currency)}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          {!isLoadingBalances && !errorBalances && !balanceSummary && (
-               <p className="text-gray-500">Could not load balance summary.</p>
-          )}
-        </div>
-
-        {/* Groups Section */}
-        <div className="bg-white shadow rounded-lg p-4">
-           <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold">Your Groups</h3>
-                <button
-                    onClick={() => setShowCreateGroupForm(true)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-1 px-3 rounded"
-                >
-                    + Create Group
-                </button>
-           </div>
-           {isLoadingGroups && <p>Loading groups...</p>}
-           {errorGroups && <p className="text-red-500">Error: {errorGroups}</p>}
-           {!isLoadingGroups && !errorGroups && (
-            groups.length === 0 ? (
-                <p className="text-gray-500">You are not in any groups yet.</p>
+      {/* Overall Balance Summary */}
+      <div className="p-4 mb-4">
+        {isLoadingBalances && <p className="text-center text-gray-500">Loading overall balance...</p>}
+        {errorBalances && <p className="text-center text-red-500">Error: {errorBalances}</p>}
+        {!isLoadingBalances && !errorBalances && balanceSummary && (
+          <div className="text-center">
+            {(balanceSummary.totalOwedToUser === 0 && balanceSummary.totalOwedByUser === 0) ? (
+              <p className="text-lg text-gray-600">You are all settled up!</p>
             ) : (
-              <ul className="divide-y divide-gray-200 -mt-3">
-              {groups.map((group) => (
-                  <li key={group.id}>
-                      <Link
-                          to={`/app/group/${group.id}`}
-                          className="block px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-md transition duration-150 ease-in-out"
-                      >
-                          {group.name}
+              <>
+                {balanceSummary.totalOwedToUser > balanceSummary.totalOwedByUser ? (
+                  <p className="text-lg text-gray-600">
+                    Overall, you are owed <span className="font-bold text-green-600">{formatCurrency(balanceSummary.totalOwedToUser - balanceSummary.totalOwedByUser, balanceSummary.currency)}</span>
+                  </p>
+                ) : (
+                  <p className="text-lg text-gray-600">
+                    Overall, you owe <span className="font-bold text-red-600">{formatCurrency(balanceSummary.totalOwedByUser - balanceSummary.totalOwedToUser, balanceSummary.currency)}</span>
+                  </p>
+                )}
+                {/* Optional: Show breakdown if needed */}
+                {/* <div className="text-sm text-gray-500 mt-1">
+                  (Owed: {formatCurrency(balanceSummary.totalOwedToUser, balanceSummary.currency)} / Owing: {formatCurrency(balanceSummary.totalOwedByUser, balanceSummary.currency)})
+                </div> */}
+              </>
+            )}
+          </div>
+        )}
+         {!isLoadingBalances && !errorBalances && !balanceSummary && (
+             <p className="text-center text-gray-500">Could not load balance summary.</p>
+         )}
+      </div>
+
+      {/* Group Balances List */}
+      <div className="px-2"> {/* Slight horizontal padding for list items */}
+        {(isLoadingGroups || isLoadingFriends) && <p className="text-center text-gray-500 py-4">Loading balances...</p>}
+        {errorGroups && <p className="text-center text-red-500 py-4">Error loading groups: {errorGroups}</p>}
+        {errorFriends && <p className="text-center text-red-500 py-4">Error loading friends: {errorFriends}</p>}
+        {/* Group balance errors are handled below within the loop potentially */}
+        {errorGroupBalances && <p className="text-center text-red-500 py-4">Error loading group balances: {errorGroupBalances}</p>}
+
+
+        {/* Combined rendering logic for Groups, Friends, and Non-Group */}
+        {!isLoadingGroups && !isLoadingFriends && !isLoadingGroupBalances && !errorGroups && !errorFriends && !errorGroupBalances && (
+          (groups.filter(g => netGroupBalances[g.id] !== undefined && netGroupBalances[g.id] !== 0).length === 0 &&
+           friends.filter(f => f.netBalance && f.netBalance !== 0).length === 0 &&
+           nonGroupNetBalance === 0) ? (
+            <p className="text-center text-gray-500 py-4">No balances to show.</p> // Show only if ALL sections are empty/settled
+          ) : (
+            <ul className="space-y-3"> {/* Spacing between list items */}
+
+              {/* Render Group Balances */}
+              {groups.map((group) => {
+                const netBalance = netGroupBalances[group.id];
+                // Only render if balance is calculated and non-zero
+                if (netBalance === undefined || netBalance === 0) return null;
+
+                const isOwed = netBalance > 0;
+                const balanceAmount = Math.abs(netBalance);
+
+                return (
+                  <li key={`group-${group.id}`} className="bg-white shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 transition-colors duration-150">
+                    {/* Group Icon */}
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                        <UserGroupIcon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-grow">
+                      <Link to={`/app/group/${group.id}`} className="font-medium text-gray-800 hover:text-blue-600">
+                        {group.name}
                       </Link>
+                      {/* TODO: Add inner balance details if needed */}
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-xs block ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                        {isOwed ? 'you are owed' : 'you owe'}
+                      </span>
+                      <span className={`font-medium ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(balanceAmount, balanceSummary?.currency || 'USD')}
+                      </span>
+                    </div>
                   </li>
-              ))}
-           </ul>
-            )
-           )}
-        </div>
+                );
+              })}
+
+              {/* Render Friend Balances */}
+              {friends.map((friendship) => {
+                  // Only render accepted friends with a non-zero balance
+                  if (!friendship.netBalance || friendship.netBalance === 0) return null;
+
+                  const isOwed = friendship.netBalance > 0;
+                  const balanceAmount = Math.abs(friendship.netBalance);
+
+                  return (
+                      <li key={`friend-${friendship.id}`} className="bg-white shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 transition-colors duration-150">
+                          {/* Friend Icon */}
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
+                              <UserIcon className="h-6 w-6" />
+                          </div>
+                          <div className="flex-grow">
+                              {/* TODO: Link to friend detail page? */}
+                              <span className="font-medium text-gray-800">{friendship.otherUser.name}</span>
+                          </div>
+                          <div className="text-right">
+                              <span className={`text-xs block ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                                  {isOwed ? `${friendship.otherUser.name} owes you` : 'you owe'} {/* Adjusted text based on who owes */}
+                              </span>
+                              <span className={`font-medium ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                                  {formatCurrency(balanceAmount, balanceSummary?.currency || 'USD')}
+                              </span>
+                          </div>
+                      </li>
+                  );
+              })}
+
+              {/* Render Non-Group Expenses Summary */}
+              {nonGroupNetBalance !== 0 && (
+                  <li key="non-group" className="bg-white shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 transition-colors duration-150">
+                      {/* Non-Group Icon */}
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-600">
+                          <DocumentTextIcon className="h-6 w-6" />
+                      </div>
+                      <div className="flex-grow">
+                          <span className="font-medium text-gray-800">Non-group expenses</span>
+                      </div>
+                      <div className="text-right">
+                          {nonGroupNetBalance > 0 ? (
+                              <>
+                                  <span className="text-xs text-green-600 block">you are owed</span>
+                                  <span className="font-medium text-green-600">{formatCurrency(nonGroupNetBalance, balanceSummary?.currency || 'USD')}</span>
+                              </>
+                          ) : (
+                              <>
+                                  <span className="text-xs text-red-600 block">you owe</span>
+                                  <span className="font-medium text-red-600">{formatCurrency(Math.abs(nonGroupNetBalance), balanceSummary?.currency || 'USD')}</span>
+                              </>
+                          )}
+                      </div>
+                  </li>
+              )}
+            </ul>
+          )
+        )}
       </div>
 
-      {/* Expenses Section */}
-       <div className="bg-white shadow rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-3">Recent Expenses</h3>
-          {isLoadingExpenses && <p>Loading expenses...</p>}
-          {errorExpenses && <p className="text-red-500">Error: {errorExpenses}</p>}
-          {!isLoadingExpenses && !errorExpenses && (
-            expenses.length === 0 ? (
-              <p className="text-gray-500">No expenses recorded yet.</p>
-            ) : (
-              <ul className="divide-y divide-gray-200">
-                {expenses.map((expense) => (
-                  <li key={expense.id} className="py-3">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <p className="font-medium">{expense.description}</p>
-                            <p className="text-sm text-gray-500">
-                                Paid by {getPayerString(expense.payers)} on {expense.date}
-                                {expense.groupId &&
-                                    <span className="ml-2 italic text-gray-400">
-                                        (Group: {groups.find(g => g.id === expense.groupId)?.name || 'Unknown'})
-                                    </span>
-                                }
-                            </p>
-                        </div>
-                        <span className="font-medium">{formatCurrency(expense.amount, expense.currency)}</span>
-                    </div>
-                    <div className="mt-2 pl-4 text-sm text-gray-600">
-                        {expense.splits.length > 0 ? (
-                            <ul>
-                                {expense.splits.map(split => (
-                                    split.owedBy ? (
-                                        <li key={split.splitId}>
-                                            - {split.owedBy.id === user?.id ? 'You owe' : `${split.owedBy.name} owes`} {formatCurrency(split.amountOwed, expense.currency)}
-                                        </li>
-                                    ) : (
-                                        <li key={split.splitId}>- Error: Owed by user missing</li>
-                                    )
-                                ))}
-                            </ul>
-                        ) : (
-                            <p><i>(Paid by payer(s) for themselves)</i></p>
-                        )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )
-          )}
-        </div>
+      {/* Floating Action Button Placeholder? Or rely on bottom nav */}
+      {/* <button
+          onClick={() => setShowCreateGroupForm(true)} // Or navigate to an 'add expense' page
+          className="fixed bottom-20 right-4 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg z-10"
+          aria-label="Add Expense or Group"
+      >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+      </button> */}
+
+      {/* Keep Create Group Modal (might need styling adjustments later) */}
 
 
        {/* Create Group Form Modal */}

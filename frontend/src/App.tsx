@@ -4,19 +4,28 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Layout and Page components
-import Layout from './components/Layout';
+// import Layout from './components/Layout'; // Keep if used elsewhere, otherwise remove
+import MainLayout from './components/MainLayout';
+import { DataProvider } from './context/DataContext'; // Import DataProvider
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
-import LandingPage from './pages/LandingPage';
+import LandingPage from './pages/LandingPage'; // Add missing import
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
+// import DashboardPage from './pages/DashboardPage'; // Remove old import
+import GroupsPage from './pages/GroupsPage'; // Add correct import
 import GroupDetailPage from './pages/GroupDetailPage';
 import FriendsPage from './pages/FriendsPage';
+import ActivityPage from './pages/ActivityPage'; // Import new page
+import AccountPage from './pages/AccountPage'; // Import new page
+// import AddExpensePage from './pages/AddExpensePage'; // Remove old import
+import SelectExpenseTargetPage from './pages/SelectExpenseTargetPage'; // Add new selection page import
+import ExpenseFormPage from './pages/ExpenseFormPage'; // Add new form page import
+import RecordPaymentPage from './pages/RecordPaymentPage'; // Import new payment page
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import HelpPage from './pages/HelpPage'; // Import HelpPage
+import HelpPage from './pages/HelpPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -35,25 +44,46 @@ function App() {
 
 
         {/* Routes with the main Layout */}
-        <Route element={<Layout />}>
-          {/* Public routes (Login/Register) */}
+        {/* Routes WITHOUT the tabbed MainLayout (Login, Register, etc.) */}
+        {/* <Route element={<Layout />}>  Optional: Keep old Layout if needed for login/register pages */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Route>
+        {/* </Route> */}
 
-          {/* Protected Routes (App Core) */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/app" element={<DashboardPage />} />
-            <Route path="/app/group/:groupId" element={<GroupDetailPage />} />
-            <Route path="/app/friends" element={<FriendsPage />} />
-            <Route path="/app/help" element={<HelpPage />} /> {/* Add HelpPage route */}
-            {/* Add other protected app routes here */}
+
+        {/* Protected Routes using the new MainLayout with BottomNavBar */}
+        {/* Wrap ALL Protected Routes with DataProvider */}
+        <Route
+          element={
+            <DataProvider> {/* DataProvider now wraps ProtectedRoute */}
+              <ProtectedRoute />
+            </DataProvider>
+          }
+        >
+          {/* Routes using MainLayout (now get context via parent) */}
+          <Route path="/app" element={<MainLayout />}>
+            <Route index element={<GroupsPage />} />
+            <Route path="groups" element={<GroupsPage />} />
+            <Route path="friends" element={<FriendsPage />} />
+            <Route path="add-expense" element={<SelectExpenseTargetPage />} />
+            <Route path="activity" element={<ActivityPage />} />
+            <Route path="account" element={<AccountPage />} />
+            <Route path="group/:groupId" element={<GroupDetailPage />} />
+            <Route path="help" element={<HelpPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          {/* Catch-all 404 within Layout */}
-          <Route path="*" element={<NotFoundPage />} />
+          {/* Expense Form Page (now also gets context via parent) */}
+          <Route path="/app/expense/new" element={<ExpenseFormPage />} />
+          {/* Add route for Settle Up / Record Payment */}
+          <Route path="/app/settle-up" element={<RecordPaymentPage />} />
         </Route>
+        {/* Removed extra closing Route tag */}
+
+        {/* Catch-all 404 for routes outside /app */}
+        <Route path="*" element={<NotFoundPage />} />
 
       </Routes>
       {/* Toast Notifications Container */}

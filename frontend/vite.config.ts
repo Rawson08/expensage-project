@@ -56,7 +56,8 @@ export default defineConfig({
   ],
   server: { // Add server configuration
       host: true, // Listen on all addresses (0.0.0.0)
-      port: 5173 // Optional: Keep default port or change if needed
+      port: 5173, // Optional: Keep default port or change if needed
+      allowedHosts: ['expensagedev.roshansubedi.me']
   },
   // Rely on postcss.config.js for PostCSS setup
 })
