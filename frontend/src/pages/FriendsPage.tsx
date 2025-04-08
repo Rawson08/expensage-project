@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'; // Removed useCallback
 import { Link } from 'react-router-dom'; // Import Link
-// Removed unused imports: FriendshipResponseDto, ExpenseResponseDto, UserResponse
+// Removed entire unused import line
 import { toast } from 'react-toastify';
 import ConfirmationModal from '../components/ConfirmationModal';
 // Removed unused UserIcon, DocumentTextIcon

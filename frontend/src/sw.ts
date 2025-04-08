@@ -3,7 +3,16 @@
 // Declare self as a ServiceWorkerGlobalScope
 declare const self: ServiceWorkerGlobalScope;
 
+// Import Workbox libraries
+import { precacheAndRoute } from 'workbox-precaching';
+
 console.log('Custom Service Worker loading...');
+
+// --- Precache Injection Point ---
+// This placeholder will be replaced by vite-plugin-pwa with the list of assets to precache.
+// Make sure this exact line exists in your service worker source file.
+precacheAndRoute(self.__WB_MANIFEST);
+// --- End Precache Injection Point ---
 
 // Listener for the 'push' event
 self.addEventListener('push', (event) => {

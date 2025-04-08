@@ -14,7 +14,7 @@ const DashboardPage: React.FC = () => {
   const [balanceSummary, setBalanceSummary] = useState<OverallBalanceSummaryDto | null>(null);
   const [groups, setGroups] = useState<GroupResponseDto[]>([]);
   const [expenses, setExpenses] = useState<ExpenseResponseDto[]>([]); // Keep recent expenses for now, might remove later if not needed for dashboard view
-  // const [groupBalancesMap, setGroupBalancesMap] = useState<{ [groupId: number]: BalanceDto[] }>({}); // Unused
+  // Unused state removed: groupBalancesMap
   const [netGroupBalances, setNetGroupBalances] = useState<{ [groupId: number]: number }>({});
   const [friends, setFriends] = useState<FriendshipResponseDto[]>([]); // State for friends
   const [nonGroupNetBalance, setNonGroupNetBalance] = useState<number>(0); // State for non-group balance
@@ -25,7 +25,7 @@ const DashboardPage: React.FC = () => {
   const [isLoadingFriends, setIsLoadingFriends] = useState(true); // Loading state for friends
   const [errorBalances, setErrorBalances] = useState<string | null>(null);
   const [errorGroups, setErrorGroups] = useState<string | null>(null);
-  // const [errorExpenses, setErrorExpenses] = useState<string | null>(null); // Unused
+  // Unused state removed: errorExpenses
   const [errorGroupBalances, setErrorGroupBalances] = useState<string | null>(null);
   const [errorFriends, setErrorFriends] = useState<string | null>(null); // Error state for friends
   const [showCreateGroupForm, setShowCreateGroupForm] = useState(false);
@@ -59,14 +59,14 @@ const DashboardPage: React.FC = () => {
 
   const fetchExpenses = useCallback(async () => {
       setIsLoadingExpenses(true);
-      // setErrorExpenses(null); // Setter for unused state
+      // Unused setter call removed
       try {
           const data = await getMyExpenses();
           data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
           setExpenses(data);
       } catch (err: any) {
           console.error("Failed to fetch expenses:", err);
-          // setErrorExpenses(err.message || 'Could not load expenses.'); // Setter for unused state
+          // Unused setter call removed
       } finally {
           setIsLoadingExpenses(false);
       }
@@ -107,12 +107,12 @@ const DashboardPage: React.FC = () => {
       setGroups([]);
       setExpenses([]);
       setFriends([]); // Reset friends
-      // setGroupBalancesMap({}); // Setter for unused state
+      // Unused setter call removed
       setNetGroupBalances({});
       setNonGroupNetBalance(0); // Reset non-group balance
       setErrorBalances("User not logged in.");
       setErrorGroups("User not logged in.");
-      // setErrorExpenses("User not logged in."); // Setter for unused state
+      // Unused setter call removed
       setErrorGroupBalances(null);
       setErrorFriends("User not logged in."); // Reset friends error
     }
@@ -151,7 +151,7 @@ const DashboardPage: React.FC = () => {
         }
 
 
-        // setGroupBalancesMap(balancesMap); // Setter for unused state
+        // Unused setter call removed
         setNetGroupBalances(netBalances);
         setErrorGroupBalances(fetchError); // Set the general error if any occurred
         setIsLoadingGroupBalances(false);
@@ -160,7 +160,7 @@ const DashboardPage: React.FC = () => {
       fetchAllGroupBalances();
     } else {
         // Reset if groups list becomes empty
-        // setGroupBalancesMap({}); // Setter for unused state
+        // Unused setter call removed
         setNetGroupBalances({});
         setIsLoadingGroupBalances(false); // Ensure loading is false if no groups
     }
@@ -215,7 +215,7 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  // Removed unused getPayerString function
+  // Unused getPayerString function removed previously
 
   return (
     // Mobile-first container, padding adjusted for typical mobile view

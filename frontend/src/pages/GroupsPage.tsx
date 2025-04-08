@@ -20,7 +20,7 @@ const GroupsPage: React.FC = () => {
       error,
       fetchData
   } = useData();
-  // const { user } = useAuth(); // Removed unused user variable
+  // const { user } = useAuth(); // Ensure user is removed or commented out
 
   // Local UI state remains
   const [showCreateGroupForm, setShowCreateGroupForm] = useState(false);
@@ -44,7 +44,7 @@ const GroupsPage: React.FC = () => {
 
   // Removed non-group expense calculation useEffect
 
-  const handleGroupCreated = (_newGroup: GroupResponseDto) => { // Mark newGroup as unused
+  const handleGroupCreated = (_newGroup: GroupResponseDto) => { // Ensure newGroup is marked unused
     // Need to refresh context data after creating a group
     fetchData(); // Call context refresh function
     setShowCreateGroupForm(false);
