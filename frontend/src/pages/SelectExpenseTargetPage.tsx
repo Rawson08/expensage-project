@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext'; // Removed unused import
 import { getFriends } from '../services/friendshipService';
 import { getMyGroups } from '../services/groupService';
 import { FriendshipResponseDto, GroupResponseDto } from '../types/api';

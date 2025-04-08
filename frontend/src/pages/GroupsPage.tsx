@@ -1,10 +1,10 @@
 import React, { useState } from 'react'; // Removed useEffect, useCallback
 import { Link } from 'react-router-dom';
 import { UserGroupIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon, PlusCircleIcon, XMarkIcon } from '@heroicons/react/24/outline'; // Removed UserPlusIcon, Added XMarkIcon
-import { useAuth } from '../context/AuthContext'; // Keep useAuth for user ID if needed
+// import { useAuth } from '../context/AuthContext'; // Keep useAuth for user ID if needed
 import { useData } from '../context/DataContext'; // Import useData hook
 // import { getGroupBalances } from '../services/balanceService'; // Remove service import, data comes from context
-import { GroupResponseDto, ExpenseResponseDto } from '../types/api'; // Removed BalanceDto
+import { GroupResponseDto } from '../types/api'; // Removed ExpenseResponseDto
 import CreateGroupForm from '../components/CreateGroupForm';
 import FilterModal from '../components/FilterModal'; // Keep single import
 
@@ -20,7 +20,7 @@ const GroupsPage: React.FC = () => {
       error,
       fetchData
   } = useData();
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Removed unused user variable
 
   // Local UI state remains
   const [showCreateGroupForm, setShowCreateGroupForm] = useState(false);
@@ -44,7 +44,7 @@ const GroupsPage: React.FC = () => {
 
   // Removed non-group expense calculation useEffect
 
-  const handleGroupCreated = (newGroup: GroupResponseDto) => {
+  const handleGroupCreated = (_newGroup: GroupResponseDto) => { // Mark newGroup as unused
     // Need to refresh context data after creating a group
     fetchData(); // Call context refresh function
     setShowCreateGroupForm(false);

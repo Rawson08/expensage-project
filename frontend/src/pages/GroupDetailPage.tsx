@@ -21,6 +21,8 @@ function isExpense(tx: TransactionDto): tx is ExpenseResponseDto {
     return (tx as ExpenseResponseDto).description !== undefined;
 }
 
+// Removed duplicate type definitions
+
 type ConfirmActionType = 'delete_expense' | 'delete_payment' | 'leave_group' | 'delete_group' | 'delete_comment';
 interface ConfirmData {
     id?: number;
@@ -45,7 +47,7 @@ const GroupDetailPage: React.FC = () => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmData, setConfirmData] = useState<ConfirmData | null>(null);
   const [selectedExpense, setSelectedExpense] = useState<ExpenseResponseDto | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  // const [isDetailModalOpen, setIsDetailModalOpen] = useState(false); // Unused state
   const [comments, setComments] = useState<CommentResponseDto[]>([]);
   const [isCommentsLoading, setIsCommentsLoading] = useState<boolean>(false);
   const [commentError, setCommentError] = useState<string | null>(null);
@@ -129,8 +131,8 @@ const GroupDetailPage: React.FC = () => {
   const handleExpenseSaved = (_savedExpense: ExpenseResponseDto) => { setShowAddExpenseForm(false); setEditingExpense(null); toast.success(editingExpense ? "Expense updated!" : "Expense added!"); fetchGroupData(); };
   const handleMemberAdded = (updatedGroup: GroupResponseDto) => { setGroup(updatedGroup); setShowAddMemberForm(false); toast.success("Member added successfully!"); fetchGroupData(); };
   const handlePaymentSaved = (_savedPayment: PaymentResponseDto) => { setShowAddPaymentForm(false); setEditingPayment(null); toast.success(editingPayment ? "Payment updated!" : "Payment added!"); fetchGroupData(); };
-  const handleEditExpenseClick = (expense: ExpenseResponseDto) => { setEditingExpense(expense); setShowAddExpenseForm(true); setIsDetailModalOpen(false); };
-  const handleDeleteExpenseClick = (expenseId: number) => { openConfirmModal('delete_expense', expenseId); setIsDetailModalOpen(false); };
+  const handleEditExpenseClick = (expense: ExpenseResponseDto) => { setEditingExpense(expense); setShowAddExpenseForm(true); /* setIsDetailModalOpen(false); */ }; // Removed call to setter
+  const handleDeleteExpenseClick = (expenseId: number) => { openConfirmModal('delete_expense', expenseId); /* setIsDetailModalOpen(false); */ }; // Removed call to setter
   const openConfirmModal = (type: ConfirmActionType, id?: number, itemName?: string) => { setConfirmData({ id, type, itemName }); setIsConfirmModalOpen(true); };
   const closeConfirmModal = () => { setIsConfirmModalOpen(false); setConfirmData(null); };
 
@@ -160,8 +162,8 @@ const GroupDetailPage: React.FC = () => {
       finally { setIsCommentsLoading(false); }
   };
 
-  const openDetailModal = (expense: ExpenseResponseDto) => { setSelectedExpense(expense); setIsDetailModalOpen(true); fetchCommentsForExpense(expense.id); };
-  const closeDetailModal = () => { setIsDetailModalOpen(false); setSelectedExpense(null); setComments([]); setIsCommentsLoading(false); setCommentError(null); setNewCommentContent(''); setIsPostingComment(false); };
+  const openDetailModal = (expense: ExpenseResponseDto) => { setSelectedExpense(expense); /* setIsDetailModalOpen(true); */ fetchCommentsForExpense(expense.id); }; // State removed, modal opens based on selectedExpense
+  const closeDetailModal = () => { /* setIsDetailModalOpen(false); */ setSelectedExpense(null); setComments([]); setIsCommentsLoading(false); setCommentError(null); setNewCommentContent(''); setIsPostingComment(false); }; // State removed
   const handleAddComment = async () => {
       if (!newCommentContent.trim() || !selectedExpense) return;
       setIsPostingComment(true); setCommentError(null);
