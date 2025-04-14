@@ -203,39 +203,39 @@ const GroupDetailPage: React.FC = () => {
 
 
   return (
-    <div className="container mx-auto p-4 pb-16">
+    <div className="container mx-auto p-4 pb-16 bg-gray-50 dark:bg-gray-900"> {/* Dark mode bg */}
        <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Group: {group.name}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Group: {group.name}</h2> {/* Dark mode text */}
         <div className="flex space-x-2">
-             <button onClick={() => { setEditingPayment(null); setShowAddPaymentForm(true); }} className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-1 px-3 rounded text-sm shadow" title="Settle Up / Record Payment">Settle Up</button>
-             <button onClick={() => { setEditingExpense(null); setShowAddExpenseForm(true); }} className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded text-sm shadow" title="Add Expense to Group">Add Expense</button>
+             <button onClick={() => { setEditingPayment(null); setShowAddPaymentForm(true); }} className="bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white font-medium py-1 px-3 rounded text-sm shadow" title="Settle Up / Record Payment">Settle Up</button> {/* Dark mode button */}
+             <button onClick={() => { setEditingExpense(null); setShowAddExpenseForm(true); }} className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium py-1 px-3 rounded text-sm shadow" title="Add Expense to Group">Add Expense</button> {/* Dark mode button */}
              {/* <button className="p-2 text-gray-500 hover:bg-gray-100 rounded"><Cog6ToothIcon className="h-5 w-5" /></button> */}
         </div>
       </div>
 
        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <div className="p-4 bg-white shadow rounded-lg">
+          <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg border dark:border-gray-700"> {/* Added explicit border */}
                <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-semibold">Members</h3>
-                     <button onClick={() => setShowAddMemberForm(true)} className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium py-1 px-2 rounded">+ Add Member</button>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Members</h3> {/* Dark mode text */}
+                     <button onClick={() => setShowAddMemberForm(true)} className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-medium py-1 px-2 rounded">+ Add Member</button> {/* Dark mode button */}
                </div>
               <ul className="list-disc list-inside pl-4 text-sm space-y-1">
                   {group.members.map(member => (
-                      <li key={member.id}>{member.name} {member.id === user?.id ? <span className="text-gray-500">(You)</span> : ''}</li>
+                      <li key={member.id} className="text-gray-800 dark:text-gray-200">{member.name} {member.id === user?.id ? <span className="text-gray-500 dark:text-gray-400">(You)</span> : ''}</li>
                   ))}
               </ul>
           </div>
 
-           <div className="p-4 bg-white shadow rounded-lg">
-                <h3 className="text-lg font-semibold mb-3">Group Balances</h3>
+           <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg border dark:border-gray-700"> {/* Added explicit border */}
+                <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Group Balances</h3> {/* Dark mode text */}
                 {groupBalances.length === 0 ? (
-                  <p className="text-gray-500">Everyone is settled up within this group.</p>
+                  <p className="text-gray-500 dark:text-gray-400">Everyone is settled up within this group.</p> /* Dark mode text */
                 ) : (
-                  <ul className="divide-y divide-gray-200">
+                  <ul className="divide-y divide-gray-200 dark:divide-gray-700"> {/* Dark mode divider */}
                     {groupBalances.map((balance) => (
                       <li key={balance.otherUser.id} className="py-3 flex justify-between items-center">
-                        <span>{balance.otherUser.name}</span>
-                        <span className={`font-medium ${balance.netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <span className="text-gray-800 dark:text-gray-200">{balance.otherUser.name}</span> {/* Dark mode text */}
+                        <span className={`font-medium ${balance.netAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}> {/* Dark mode balance text */}
                           {balance.netAmount >= 0 ? 'owes you' : 'you owe'} {formatCurrency(Math.abs(balance.netAmount), balance.currency)}
                         </span>
                       </li>
@@ -246,14 +246,14 @@ const GroupDetailPage: React.FC = () => {
       </div>
 
       {/* Combined Transactions List */}
-      <div className="bg-white shadow rounded-lg mb-6">
-         <h3 className="text-lg font-semibold mb-0 p-4 border-b">Group Activity</h3>
-         {isLoading && <p className="p-4 text-gray-500">Loading activity...</p>}
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6 border dark:border-gray-700"> {/* Added explicit border */}
+         <h3 className="text-lg font-semibold mb-0 p-4 border-b dark:border-gray-700 text-gray-900 dark:text-gray-100">Group Activity</h3> {/* Dark mode header */}
+         {isLoading && <p className="p-4 text-gray-500 dark:text-gray-400">Loading activity...</p>} {/* Dark mode text */}
          {!error && transactions.length === 0 && !isLoading && (
-               <p className="p-4 text-gray-500">No expenses or payments recorded in this group yet.</p>
-         )}
+               <p className="p-4 text-gray-500 dark:text-gray-400">No expenses or payments recorded in this group yet.</p> /* Dark mode text */
+         ) }
          {!isLoading && !error && transactions.length > 0 && (
-               <ul className="divide-y divide-gray-200">
+               <ul className="divide-y divide-gray-200 dark:divide-gray-700"> {/* Dark mode divider */}
                  {transactions.map((transaction, index) => { // Use combined 'transactions' state
                      const transactionDate = new Date(transaction.date + 'T00:00:00');
                      const currentMonthYear = `${transactionDate.getFullYear()}-${transactionDate.getMonth()}`;
@@ -270,25 +270,25 @@ const GroupDetailPage: React.FC = () => {
                          const lentAmountDisplay = youLent >= 0 ? youLent : 0;
                          const borrowedAmountDisplay = youLent < 0 ? Math.abs(youLent) : 0;
                          transactionListItem = (
-                             <li key={`expense-${expense.id}`} className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-50`} onClick={() => openDetailModal(expense)}>
+                             <li key={`expense-${expense.id}`} className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700`} onClick={() => openDetailModal(expense)}> {/* Dark mode hover */}
                                  <div className="w-10 text-center mr-2 flex-shrink-0">
-                                     <p className="text-xs uppercase text-gray-500">{transactionDate.toLocaleString('default', { month: 'short' })}</p>
-                                     <p className="text-base font-medium text-gray-700">{transactionDate.getDate()}</p>
+                                     <p className="text-xs uppercase text-gray-500 dark:text-gray-400">{transactionDate.toLocaleString('default', { month: 'short' })}</p> {/* Dark mode text */}
+                                     <p className="text-base font-medium text-gray-700 dark:text-gray-300">{transactionDate.getDate()}</p> {/* Dark mode text */}
                                  </div>
                                  <div className="flex-grow flex items-center mr-3 overflow-hidden">
-                                     <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-                                         <ReceiptPercentIcon className="h-5 w-5 text-gray-500" />
+                                     <div className="flex-shrink-0 w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3"> {/* Dark mode icon bg */}
+                                         <ReceiptPercentIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" /> {/* Dark mode icon color */}
                                      </div>
-                                     <p className="font-medium text-sm text-gray-800 truncate" title={expense.description}>{expense.description}</p>
-                                     {expense.notes && <span title="Has notes" className="ml-1 text-gray-400 text-xs">📝</span>}
-                                     {expense.receiptUrl && <span title="Has receipt" className="ml-1 text-gray-400 text-xs">📎</span>}
+                                     <p className="font-medium text-sm text-gray-800 dark:text-gray-200 truncate" title={expense.description}>{expense.description}</p> {/* Dark mode text */}
+                                     {expense.notes && <span title="Has notes" className="ml-1 text-gray-400 dark:text-gray-500 text-xs">📝</span>} {/* Dark mode icon text */}
+                                     {expense.receiptUrl && <span title="Has receipt" className="ml-1 text-gray-400 dark:text-gray-500 text-xs">📎</span>} {/* Dark mode icon text */}
                                  </div>
                                  <div className="flex flex-col text-right w-20 flex-shrink-0">
-                                     <div><p className="text-xs text-gray-500 leading-tight">you paid</p><p className="text-xs font-medium text-gray-700 leading-tight">{formatCurrency(youPaid, expense.currency)}</p></div>
+                                     <div><p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">you paid</p><p className="text-xs font-medium text-gray-700 dark:text-gray-300 leading-tight">{formatCurrency(youPaid, expense.currency)}</p></div> {/* Dark mode text */}
                                      <div className="mt-1">
-                                         {lentAmountDisplay > 0 && (<><p className="text-xs text-green-600 leading-tight">you lent</p><p className="text-xs font-medium text-green-600 leading-tight">{formatCurrency(lentAmountDisplay, expense.currency)}</p></>)}
-                                         {borrowedAmountDisplay > 0 && (<><p className="text-xs text-red-600 leading-tight">you borrowed</p><p className="text-xs font-medium text-red-600 leading-tight">{formatCurrency(borrowedAmountDisplay, expense.currency)}</p></>)}
-                                         {lentAmountDisplay === 0 && borrowedAmountDisplay === 0 && (<><p className="text-xs text-gray-500 leading-tight">no balance</p><p className="text-xs font-medium text-gray-500 leading-tight">{formatCurrency(0, expense.currency)}</p></>)}
+                                         {lentAmountDisplay > 0 && (<><p className="text-xs text-green-600 dark:text-green-400 leading-tight">you lent</p><p className="text-xs font-medium text-green-600 dark:text-green-400 leading-tight">{formatCurrency(lentAmountDisplay, expense.currency)}</p></>)} {/* Dark mode balance */}
+                                         {borrowedAmountDisplay > 0 && (<><p className="text-xs text-red-600 dark:text-red-400 leading-tight">you borrowed</p><p className="text-xs font-medium text-red-600 dark:text-red-400 leading-tight">{formatCurrency(borrowedAmountDisplay, expense.currency)}</p></>)} {/* Dark mode balance */}
+                                         {lentAmountDisplay === 0 && borrowedAmountDisplay === 0 && (<><p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">no balance</p><p className="text-xs font-medium text-gray-500 dark:text-gray-400 leading-tight">{formatCurrency(0, expense.currency)}</p></>)} {/* Dark mode text */}
                                      </div>
                                  </div>
                              </li>
@@ -297,25 +297,25 @@ const GroupDetailPage: React.FC = () => {
                          // Render Payment Item
                          const payment = transaction as PaymentResponseDto;
                          transactionListItem = (
-                              <li key={`payment-${payment.id}`} className="flex items-center px-4 py-3 hover:bg-gray-50">
+                              <li key={`payment-${payment.id}`} className="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700"> {/* Dark mode hover */}
                                   <div className="w-10 text-center mr-2 flex-shrink-0">
-                                      <p className="text-xs uppercase text-gray-500">{transactionDate.toLocaleString('default', { month: 'short' })}</p>
-                                      <p className="text-base font-medium text-gray-700">{transactionDate.getDate()}</p>
+                                      <p className="text-xs uppercase text-gray-500 dark:text-gray-400">{transactionDate.toLocaleString('default', { month: 'short' })}</p> {/* Dark mode text */}
+                                      <p className="text-base font-medium text-gray-700 dark:text-gray-300">{transactionDate.getDate()}</p> {/* Dark mode text */}
                                   </div>
                                   <div className="flex-grow flex items-center mr-3 overflow-hidden">
-                                      <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3"> {/* Changed background to green */}
-                                          <BanknotesIcon className="h-5 w-5 text-green-600" /> {/* Changed color to green */}
+                                      <div className="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mr-3"> {/* Dark mode icon bg */}
+                                          <BanknotesIcon className="h-5 w-5 text-green-600 dark:text-green-400" /> {/* Dark mode icon color */}
                                       </div>
-                                      <p className="text-sm text-gray-800 truncate">
+                                      <p className="text-sm text-gray-800 dark:text-gray-200 truncate"> {/* Dark mode text */}
                                           <span className="font-medium">{payment.paidBy.name === user?.name ? 'You' : payment.paidBy.name}</span> paid <span className="font-medium">{payment.paidTo.name === user?.name ? 'you' : payment.paidTo.name}</span>
                                       </p>
                                   </div>
                                   <div className="text-right w-20 flex-shrink-0">
-                                      <p className="text-sm font-medium text-blue-600">{formatCurrency(payment.amount, payment.currency)}</p>
+                                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{formatCurrency(payment.amount, payment.currency)}</p> {/* Dark mode text */}
                                   </div>
                                   <div className="ml-4 flex-shrink-0 space-x-2">
-                                       <button onClick={() => handleEditPaymentClick(payment)} className="text-indigo-600 hover:text-indigo-900 text-xs">Edit</button>
-                                       <button onClick={() => openConfirmModal('delete_payment', payment.id)} className="text-red-600 hover:text-red-900 text-xs">Delete</button>
+                                       <button onClick={() => handleEditPaymentClick(payment)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs">Edit</button> {/* Dark mode button */}
+                                       <button onClick={() => openConfirmModal('delete_payment', payment.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 text-xs">Delete</button> {/* Dark mode button */}
                                   </div>
                               </li>
                          );
@@ -324,7 +324,7 @@ const GroupDetailPage: React.FC = () => {
                      if (showMonthHeader) {
                          return (
                              <React.Fragment key={`month-${currentMonthYear}`}>
-                                 <li className="bg-gray-50 px-4 py-1 text-xs font-semibold text-gray-500 uppercase sticky top-0 z-10">
+                                 <li className="bg-gray-50 dark:bg-gray-700 px-4 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase sticky top-0 z-10"> {/* Dark mode month header */}
                                      {transactionDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                                  </li>
                                  {transactionListItem}
@@ -341,7 +341,7 @@ const GroupDetailPage: React.FC = () => {
        {/* Delete Group Button */}
        {isCreator && (
            <div className="mt-8 flex justify-end">
-               <button onClick={handleDeleteGroup} className="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" title="Permanently delete this group">
+               <button onClick={handleDeleteGroup} className="bg-red-700 hover:bg-red-800 dark:bg-red-800 dark:hover:bg-red-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" title="Permanently delete this group"> {/* Dark mode button */}
                    Delete Group
                </button>
            </div>
@@ -351,7 +351,7 @@ const GroupDetailPage: React.FC = () => {
        {/* Add/Edit Expense Form Modal */}
        {showAddExpenseForm && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-20 flex items-center justify-center">
-                <div className="relative mx-auto p-1 border w-full max-w-lg shadow-lg rounded-md bg-white">
+                <div className="relative mx-auto p-1 border dark:border-gray-700 w-full max-w-lg shadow-lg rounded-md bg-white dark:bg-gray-800"> {/* Dark mode modal */}
                      <div className="p-4">
                         <AddExpenseForm
                             onExpenseSaved={handleExpenseSaved}
@@ -367,7 +367,7 @@ const GroupDetailPage: React.FC = () => {
        {/* Add Member Form Modal */}
        {showAddMemberForm && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-20 flex items-center justify-center">
-                <div className="relative mx-auto p-1 border w-full max-w-md shadow-lg rounded-md bg-white">
+                <div className="relative mx-auto p-1 border dark:border-gray-700 w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800"> {/* Dark mode modal */}
                      <div className="p-4">
                         <AddMemberForm
                             groupId={group.id}
@@ -382,7 +382,7 @@ const GroupDetailPage: React.FC = () => {
        {/* Add/Edit Payment Form Modal */}
        {showAddPaymentForm && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-20 flex items-center justify-center">
-                <div className="relative mx-auto p-1 border w-full max-w-lg shadow-lg rounded-md bg-white">
+                <div className="relative mx-auto p-1 border dark:border-gray-700 w-full max-w-lg shadow-lg rounded-md bg-white dark:bg-gray-800"> {/* Dark mode modal */}
                      <div className="p-4">
                         <AddPaymentForm
                             groupId={group.id}
@@ -409,51 +409,51 @@ const GroupDetailPage: React.FC = () => {
         {/* Expense Detail Modal */}
         {selectedExpense && (
              <div className="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-30 flex items-center justify-center">
-                 <div className="relative mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
-                     <div className="flex justify-between items-center border-b pb-3 mb-4">
-                         <h3 className="text-xl font-semibold text-gray-900">{selectedExpense.description}</h3>
-                         <button onClick={closeDetailModal} className="text-gray-400 hover:text-gray-600">
+                 <div className="relative mx-auto p-5 border dark:border-gray-700 w-full max-w-xl shadow-lg rounded-md bg-white dark:bg-gray-800"> {/* Dark mode modal */}
+                     <div className="flex justify-between items-center border-b dark:border-gray-700 pb-3 mb-4"> {/* Dark mode border */}
+                         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{selectedExpense.description}</h3> {/* Dark mode text */}
+                         <button onClick={closeDetailModal} className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"> {/* Dark mode button */}
                              <XMarkIcon className="h-6 w-6" />
                          </button>
                      </div>
                      <div className="text-sm space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                         <p><strong>Amount:</strong> {formatCurrency(selectedExpense.amount, selectedExpense.currency)}</p>
-                         <p><strong>Date:</strong> {new Date(selectedExpense.date + 'T00:00:00').toLocaleDateString()}</p>
-                         <p><strong>Paid by:</strong> {getPayerString(selectedExpense.payers)}</p>
-                         <p><strong>Split:</strong> {selectedExpense.splitType}</p>
+                         <p className="text-gray-700 dark:text-gray-300"><strong>Amount:</strong> {formatCurrency(selectedExpense.amount, selectedExpense.currency)}</p> {/* Dark mode text */}
+                         <p className="text-gray-700 dark:text-gray-300"><strong>Date:</strong> {new Date(selectedExpense.date + 'T00:00:00').toLocaleDateString()}</p> {/* Dark mode text */}
+                         <p className="text-gray-700 dark:text-gray-300"><strong>Paid by:</strong> {getPayerString(selectedExpense.payers)}</p> {/* Dark mode text */}
+                         <p className="text-gray-700 dark:text-gray-300"><strong>Split:</strong> {selectedExpense.splitType}</p> {/* Dark mode text */}
                          {selectedExpense.splits.length > 0 && (
                              <div>
-                                 <strong>Details:</strong>
+                                 <strong className="text-gray-700 dark:text-gray-300">Details:</strong> {/* Dark mode text */}
                                  <ul className="list-disc list-inside pl-4 mt-1">
                                      {selectedExpense.splits.map(split => (
-                                         <li key={split.splitId}>
+                                         <li key={split.splitId} className="text-gray-700 dark:text-gray-300"> {/* Dark mode text */}
                                              {split.owedBy.name} owes {formatCurrency(split.amountOwed, selectedExpense.currency)}
                                          </li>
                                      ))}
                                  </ul>
                              </div>
                          )}
-                         {selectedExpense.notes && <p><strong>Notes:</strong> {selectedExpense.notes}</p>}
+                         {selectedExpense.notes && <p className="text-gray-700 dark:text-gray-300"><strong>Notes:</strong> {selectedExpense.notes}</p>} {/* Dark mode text */}
                          {selectedExpense.receiptUrl && (
-                             <p><strong>Receipt:</strong> <a href={selectedExpense.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Receipt</a></p>
+                             <p className="text-gray-700 dark:text-gray-300"><strong>Receipt:</strong> <a href={selectedExpense.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">View Receipt</a></p> /* Dark mode link */
                          )}
 
                          {/* Comments Section */}
-                         <div className="mt-4 pt-4 border-t">
-                             <h4 className="text-md font-semibold mb-2">Comments</h4>
-                             {isCommentsLoading && <p>Loading comments...</p>}
-                             {commentError && <p className="text-red-500 text-sm">Error: {commentError}</p>}
-                             {!isCommentsLoading && !commentError && comments.length === 0 && <p className="text-gray-500 text-sm">No comments yet.</p>}
+                         <div className="mt-4 pt-4 border-t dark:border-gray-700"> {/* Dark mode border */}
+                             <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-100">Comments</h4> {/* Dark mode text */}
+                             {isCommentsLoading && <p className="text-gray-500 dark:text-gray-400">Loading comments...</p>} {/* Dark mode text */}
+                             {commentError && <p className="text-red-500 dark:text-red-400 text-sm">Error: {commentError}</p>} {/* Dark mode error text */}
+                             {!isCommentsLoading && !commentError && comments.length === 0 && <p className="text-gray-500 dark:text-gray-400 text-sm">No comments yet.</p>} {/* Dark mode text */}
                              {!isCommentsLoading && !commentError && comments.length > 0 && (
                                  <ul className="space-y-2 mb-3 max-h-40 overflow-y-auto">
                                      {comments.map(comment => (
-                                         <li key={comment.id} className="text-xs border-b pb-1">
+                                         <li key={comment.id} className="text-xs border-b dark:border-gray-700 pb-1 text-gray-800 dark:text-gray-200"> {/* Dark mode comment text/border */}
                                              <span className="font-semibold">{comment.author.name}:</span> {comment.content}
-                                             <span className="text-gray-400 text-xxs block text-right">
+                                             <span className="text-gray-400 dark:text-gray-500 text-xxs block text-right"> {/* Dark mode timestamp */}
                                                  {new Date(comment.createdAt).toLocaleString()}
                                                  {comment.author.id === user?.id && (
-                                                     <button onClick={() => handleDeleteCommentClick(comment.id)} className="ml-2 text-red-500 hover:text-red-700">Delete</button>
-                                                 )}
+                                                     <button onClick={() => handleDeleteCommentClick(comment.id)} className="ml-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">{/* Dark mode button */}Delete</button>
+                                                 ) }
                                              </span>
                                          </li>
                                      ))}
@@ -466,23 +466,23 @@ const GroupDetailPage: React.FC = () => {
                                      value={newCommentContent}
                                      onChange={(e) => setNewCommentContent(e.target.value)}
                                      placeholder="Add a comment..."
-                                     className="w-full p-2 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                     className="w-full p-2 border dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode textarea
                                      disabled={isPostingComment}
                                  />
                                  <button
                                      onClick={handleAddComment}
                                      disabled={!newCommentContent.trim() || isPostingComment}
-                                     className="mt-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50"
+                                     className="mt-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50" // Dark mode button
                                  >
                                      {isPostingComment ? 'Posting...' : 'Add Comment'}
                                  </button>
                              </div>
                          </div>
                      </div>
-                     <div className="flex justify-end space-x-3 mt-4 pt-4 border-t">
-                         <button onClick={() => handleEditExpenseClick(selectedExpense)} className="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Edit</button>
-                         <button onClick={() => handleDeleteExpenseClick(selectedExpense.id)} className="px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700">Delete</button>
-                         <button onClick={closeDetailModal} className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300">Close</button>
+                     <div className="flex justify-end space-x-3 mt-4 pt-4 border-t dark:border-gray-700"> {/* Dark mode border */}
+                         <button onClick={() => handleEditExpenseClick(selectedExpense)} className="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800">Edit</button> {/* Dark mode button */}
+                         <button onClick={() => handleDeleteExpenseClick(selectedExpense.id)} className="px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800">Delete</button> {/* Dark mode button */}
+                         <button onClick={closeDetailModal} className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500">Close</button> {/* Dark mode button */}
                      </div>
                  </div>
              </div>

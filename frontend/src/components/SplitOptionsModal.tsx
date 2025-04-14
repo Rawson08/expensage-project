@@ -134,17 +134,17 @@ const SplitOptionsModal: React.FC<SplitOptionsModalProps> = ({
             style={{ opacity: isOpen ? 1 : 0 }}
         >
             <div
-                className="bg-white rounded-lg shadow-xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out max-h-[80vh] flex flex-col"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg m-4 transform transition-all duration-300 ease-in-out max-h-[80vh] flex flex-col" // Dark mode bg
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex justify-between items-center p-4 border-b">
-                    <h3 className="text-lg font-semibold text-gray-800">Choose split option</h3>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                <div className="flex justify-between items-center p-4 border-b dark:border-gray-700"> {/* Dark mode border */}
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Choose split option</h3> {/* Dark mode text */}
+                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"> {/* Dark mode button */}
                         <XMarkIcon className="h-6 w-6" />
                     </button>
                 </div>
 
-                <div className="p-4 border-b text-sm text-gray-600">
+                <div className="p-4 border-b dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400"> {/* Dark mode border/text */}
                     Splitting among: {participants.filter(p => includedParticipantIds.has(p.id)).map(p => p.name).join(', ') || 'None selected'} ({includedParticipantIds.size})
                 </div>
 
@@ -155,20 +155,20 @@ const SplitOptionsModal: React.FC<SplitOptionsModalProps> = ({
                                 onClick={() => handleTypeSelect(option.key)}
                                 className={`w-full flex items-center justify-between p-3 rounded-lg text-left ${
                                     selectedType === option.key
-                                        ? 'bg-blue-100 ring-2 ring-blue-300'
-                                        : 'text-gray-700 hover:bg-gray-100'
+                                        ? 'bg-blue-100 dark:bg-blue-900 ring-2 ring-blue-300 dark:ring-blue-700' // Dark mode active
+                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' // Dark mode inactive
                                 } transition-colors duration-150`}
                             >
                                 <div>
-                                    <span className={`font-semibold ${selectedType === option.key ? 'text-blue-800' : ''}`}>{option.label}</span>
-                                    <p className={`text-xs ${selectedType === option.key ? 'text-blue-600' : 'text-gray-500'}`}>{option.description}</p>
+                                    <span className={`font-semibold ${selectedType === option.key ? 'text-blue-800 dark:text-blue-200' : 'dark:text-gray-100'}`}>{option.label}</span> {/* Dark mode text */}
+                                    <p className={`text-xs ${selectedType === option.key ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>{option.description}</p> {/* Dark mode text */}
                                 </div>
-                                {selectedType === option.key && <CheckIcon className="h-5 w-5 text-blue-600 flex-shrink-0 ml-3" />}
+                                {selectedType === option.key && <CheckIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-3" />} {/* Dark mode icon */}
                             </button>
 
                             {selectedType !== 'EQUAL' && selectedType === option.key && (
                                 <div className="mt-3 pl-4 pr-2 space-y-2">
-                                    <p className="text-sm font-medium text-gray-600">Enter {selectedType.toLowerCase()}s for included participants:</p>
+                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Enter {selectedType.toLowerCase()}s for included participants:</p> {/* Dark mode text */}
                                     {participants.map(participant => {
                                         const isIncluded = includedParticipantIds.has(participant.id);
                                         return (
@@ -179,11 +179,11 @@ const SplitOptionsModal: React.FC<SplitOptionsModalProps> = ({
                                                         type="checkbox"
                                                         checked={isIncluded}
                                                         onChange={() => handleToggleInclude(participant.id)}
-                                                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0" // Added flex-shrink-0
+                                                        className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 flex-shrink-0 dark:bg-gray-600 dark:checked:bg-blue-600 dark:focus:ring-blue-600 dark:focus:ring-offset-gray-800" // Dark mode checkbox
                                                     />
                                                     {/* Use Avatar component */}
                                                     <Avatar name={participant.name} size="sm" />
-                                                    <label htmlFor={`split-include-${participant.id}`} className={`text-sm flex-grow truncate ${isIncluded ? 'text-gray-700' : 'text-gray-400 line-through'}`}>
+                                                    <label htmlFor={`split-include-${participant.id}`} className={`text-sm flex-grow truncate ${isIncluded ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500 line-through'}`}> {/* Dark mode text */}
                                                         {participant.name} {participant.id === currentUser?.id ? '(You)' : ''}
                                                     </label>
                                                 </div>
@@ -194,7 +194,7 @@ const SplitOptionsModal: React.FC<SplitOptionsModalProps> = ({
                                                         inputMode={selectedType === 'SHARE' ? 'numeric' : 'decimal'}
                                                         value={splitValues[participant.id] || ''}
                                                         onChange={(e) => handleValueChange(participant.id, e.target.value)}
-                                                        className="w-24 px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm flex-shrink-0" // Added flex-shrink-0
+                                                        className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm flex-shrink-0 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode input
                                                         placeholder={selectedType === 'PERCENTAGE' ? '%' : (selectedType === 'SHARE' ? 'shares' : '0.00')}
                                                     />
                                                 )}
@@ -207,8 +207,8 @@ const SplitOptionsModal: React.FC<SplitOptionsModalProps> = ({
                     ))}
                 </ul>
 
-                 <div className="p-4 border-t flex justify-end">
-                     <button onClick={handleDone} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Done</button>
+                 <div className="p-4 border-t dark:border-gray-700 flex justify-end"> {/* Dark mode border */}
+                     <button onClick={handleDone} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">Done</button> {/* Dark mode button */}
                  </div>
             </div>
         </div>

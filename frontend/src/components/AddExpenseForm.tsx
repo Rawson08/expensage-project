@@ -256,36 +256,36 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
   const availableSplitMembers = groupMembers;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white rounded shadow">
-      <h3 className="text-lg font-medium text-gray-900">{isEditing ? 'Edit Expense' : 'Add New Expense'}</h3>
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded shadow"> {/* Dark mode bg */}
+      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{isEditing ? 'Edit Expense' : 'Add New Expense'}</h3> {/* Dark mode text */}
 
       {/* Description */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-        <input type="text" id="description" value={description} onChange={(e) => setDescription(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" disabled={loading} />
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label> {/* Dark mode text */}
+        <input type="text" id="description" value={description} onChange={(e) => setDescription(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" disabled={loading} /> {/* Dark mode input */}
       </div>
 
       {/* Amount & Date Row */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Amount</label>
-          <input type="number" id="amount" value={amount} onChange={(e) => handleAmountChange(e.target.value)} required min="0.01" step="0.01" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0.00" disabled={loading} />
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label> {/* Dark mode text */}
+          <input type="number" id="amount" value={amount} onChange={(e) => handleAmountChange(e.target.value)} required min="0.01" step="0.01" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" placeholder="0.00" disabled={loading} /> {/* Dark mode input */}
         </div>
         <div>
-          <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date</label>
-          <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" disabled={loading} />
+          <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label> {/* Dark mode text */}
+          <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 dark:[color-scheme:dark]" disabled={loading} /> {/* Dark mode input + color scheme for picker */}
         </div>
       </div>
 
        {/* Notes Section */}
        <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">Notes (Optional)</label>
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes (Optional)</label> {/* Dark mode text */}
         <textarea
             id="notes"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode textarea
             placeholder="Add any relevant notes here..."
             disabled={loading}
         />
@@ -293,7 +293,7 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
 
        {/* Receipt Upload Section */}
        <div>
-            <label htmlFor="receiptFile" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="receiptFile" className="block text-sm font-medium text-gray-700 dark:text-gray-300"> {/* Dark mode text */}
                 Receipt (Optional - Autofills form)
             </label>
             <input
@@ -301,24 +301,24 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
                 id="receiptFile"
                 onChange={handleFileChange}
                 accept="image/*,.pdf"
-                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50"
+                className="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900 dark:file:text-indigo-300 dark:hover:file:bg-indigo-800 disabled:opacity-50" // Dark mode file input
                 disabled={loading || scanLoading}
             />
-            {scanLoading && <p className="text-sm text-indigo-600 mt-1">Scanning receipt...</p>}
-            {scanError && <p className="text-sm text-red-600 mt-1">Scan Error: {scanError}</p>}
+            {scanLoading && <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-1">Scanning receipt...</p>} {/* Dark mode text */}
+            {scanError && <p className="text-sm text-red-600 dark:text-red-400 mt-1">Scan Error: {scanError}</p>} {/* Dark mode error text */}
         </div>
 
 
       {/* Payers Section */}
-      <fieldset className="border p-3 rounded">
-          <legend className="text-sm font-medium text-gray-700 px-1">Paid By</legend>
+      <fieldset className="border dark:border-gray-600 p-3 rounded"> {/* Dark mode border */}
+          <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-1">Paid By</legend> {/* Dark mode text */}
           {payers.map((payer, index) => (
               <div key={index} className="flex items-center space-x-2 mb-2">
                   <select
                       value={payer.userId || ''}
                       onChange={(e) => handlePayerChange(index, 'userId', parseInt(e.target.value))}
                       required
-                      className="flex-grow mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+                      className="flex-grow mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" // Dark mode select
                       disabled={loading}
                   >
                       <option value="">-- Select Payer --</option>
@@ -336,30 +336,30 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
                           required
                           min="0.01"
                           step="0.01"
-                          className="mt-1 block w-1/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          className="mt-1 block w-1/3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode input
                           placeholder="0.00"
                           disabled={loading}
                       />
                   )}
                   {payers.length > 1 && (
-                      <button type="button" onClick={() => removePayer(index)} className="text-red-600 hover:text-red-800 text-sm" disabled={loading}>Remove</button>
+                      <button type="button" onClick={() => removePayer(index)} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm" disabled={loading}>Remove</button>
                   )}
               </div>
           ))}
-          <button type="button" onClick={addPayer} className="text-indigo-600 hover:text-indigo-800 text-sm mt-1" disabled={loading}>+ Add another payer</button>
+          <button type="button" onClick={addPayer} className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm mt-1" disabled={loading}>+ Add another payer</button>
       </fieldset>
 
       {/* Split Section */}
-       <fieldset className="border p-3 rounded">
-          <legend className="text-sm font-medium text-gray-700 px-1">Split Between</legend>
+       <fieldset className="border dark:border-gray-600 p-3 rounded"> {/* Dark mode border */}
+          <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-1">Split Between</legend> {/* Dark mode text */}
            {/* Split Type Selector */}
            <div className="mb-3">
-                <label htmlFor="splitType" className="block text-sm font-medium text-gray-700">Split Method:</label>
+                <label htmlFor="splitType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Split Method:</label> {/* Dark mode text */}
                 <select
                     id="splitType"
                     value={splitType}
                     onChange={(e) => setSplitType(e.target.value as SplitType)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" // Dark mode select
                     disabled={loading}
                 >
                     <option value="EQUAL">Equally</option>
@@ -379,10 +379,10 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
                                type="checkbox"
                                checked={splits.some(s => s.userId === member.id)}
                                onChange={(e) => handleSplitUserChange(member.id, e.target.checked)}
-                               className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                               className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-500 rounded focus:ring-indigo-500 dark:bg-gray-600 dark:checked:bg-indigo-600 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" // Dark mode checkbox
                                disabled={loading}
                            />
-                           <label htmlFor={`split-user-${member.id}`} className="ml-2 block text-sm text-gray-900">
+                           <label htmlFor={`split-user-${member.id}`} className="ml-2 block text-sm text-gray-900 dark:text-gray-100"> {/* Dark mode text */}
                                {member.id === user?.id ? 'You' : member.name}
                            </label>
                        </div>
@@ -394,7 +394,7 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
                                required={splitType as string !== 'EQUAL'}
                                min="0"
                                step={splitType === 'PERCENTAGE' ? "0.01" : (splitType === 'EXACT' ? "0.01" : "1")}
-                               className="mt-1 block w-1/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                               className="mt-1 block w-1/3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode input
                                placeholder={splitType === 'PERCENTAGE' ? '%' : (splitType === 'SHARE' ? 'shares' : '0.00')}
                                disabled={loading}
                            />
@@ -405,11 +405,11 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
        </fieldset>
 
 
-      {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>} {/* Dark mode error text */}
 
-      <div className="flex justify-end space-x-3 pt-3 border-t">
-         <button type="button" onClick={onCancel} disabled={loading} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Cancel</button>
-        <button type="submit" disabled={loading || splits.length === 0 || payers.length === 0} className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+      <div className="flex justify-end space-x-3 pt-3 border-t dark:border-gray-700"> {/* Dark mode border */}
+         <button type="button" onClick={onCancel} disabled={loading} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500 dark:hover:bg-gray-500 dark:focus:ring-offset-gray-800">Cancel</button> {/* Dark mode cancel button */}
+        <button type="submit" disabled={loading || splits.length === 0 || payers.length === 0} className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 dark:focus:ring-offset-gray-800"> {/* Dark mode submit button */}
           {loading ? 'Saving...' : (isEditing ? 'Update Expense' : 'Add Expense')}
         </button>
       </div>

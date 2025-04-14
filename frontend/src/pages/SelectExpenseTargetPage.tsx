@@ -58,10 +58,10 @@ const SelectExpenseTargetPage: React.FC = () => {
     );
 
     return (
-        <div className="flex flex-col h-screen bg-gray-100">
+        <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900"> {/* Dark mode bg */}
             {/* Header */}
-            <header className="flex items-center p-4 bg-white border-b sticky top-0 z-10">
-                 <button onClick={() => navigate(-1)} className="text-gray-600 mr-4"> {/* Go back */}
+            <header className="flex items-center p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10"> {/* Dark mode header */}
+                 <button onClick={() => navigate(-1)} className="text-gray-600 dark:text-gray-400 mr-4"> {/* Dark mode button */}
                     <XMarkIcon className="h-6 w-6" />
                 </button>
                 <div className="relative flex-grow">
@@ -70,16 +70,16 @@ const SelectExpenseTargetPage: React.FC = () => {
                          placeholder="Enter names, emails, or group name"
                          value={searchTerm}
                          onChange={(e) => setSearchTerm(e.target.value)}
-                         className="w-full p-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                         className="w-full p-2 pl-10 border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode input
                      />
-                     <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                     <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" /> {/* Dark mode icon */}
                  </div>
             </header>
 
             {/* Content Area */}
             <main className="flex-grow overflow-y-auto p-4">
-                {isLoading && <p className="text-center text-gray-500 py-6">Loading...</p>}
-                {error && <p className="text-center text-red-500 py-6">Error: {error}</p>}
+                {isLoading && <p className="text-center text-gray-500 dark:text-gray-400 py-6">Loading...</p>} {/* Dark mode text */}
+                {error && <p className="text-center text-red-500 dark:text-red-400 py-6">Error: {error}</p>} {/* Dark mode error text */}
 
                 {!isLoading && !error && (
                     <div className="space-y-6">
@@ -88,19 +88,19 @@ const SelectExpenseTargetPage: React.FC = () => {
                         {/* Groups Section */}
                         {filteredGroups.length > 0 && (
                             <section>
-                                <h2 className="text-xs font-semibold text-gray-500 uppercase mb-2 px-1">Groups</h2>
-                                <ul className="bg-white rounded-lg shadow overflow-hidden">
+                                <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 px-1">Groups</h2> {/* Dark mode text */}
+                                <ul className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border dark:border-gray-700"> {/* Dark mode list bg/border */}
                                     {filteredGroups.map(group => (
-                                        <li key={`group-${group.id}`} className="border-b last:border-b-0">
+                                        <li key={`group-${group.id}`} className="border-b dark:border-gray-700 last:border-b-0"> {/* Dark mode border */}
                                             <button
                                                 onClick={() => handleSelectTarget('group', group.id)}
-                                                className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 text-left"
+                                                className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 text-left" // Dark mode hover
                                             >
                                                 {/* Use square Avatar for groups? Or keep icon? Let's keep icon for now */}
-                                                <span className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded flex items-center justify-center">
-                                                    <UserGroupIcon className="h-5 w-5 text-orange-600" />
+                                                <span className="flex-shrink-0 w-8 h-8 bg-orange-100 dark:bg-orange-900/50 rounded flex items-center justify-center"> {/* Dark mode icon bg */}
+                                                    <UserGroupIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" /> {/* Dark mode icon color */}
                                                 </span>
-                                                <span className="text-sm font-medium text-gray-800">{group.name}</span>
+                                                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{group.name}</span> {/* Dark mode text */}
                                             </button>
                                         </li>
                                     ))}
@@ -111,17 +111,17 @@ const SelectExpenseTargetPage: React.FC = () => {
                         {/* Friends Section */}
                          {filteredFriends.length > 0 && (
                             <section>
-                                <h2 className="text-xs font-semibold text-gray-500 uppercase mb-2 px-1">Friends</h2>
-                                <ul className="bg-white rounded-lg shadow overflow-hidden">
+                                <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 px-1">Friends</h2> {/* Dark mode text */}
+                                <ul className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border dark:border-gray-700"> {/* Dark mode list bg/border */}
                                     {filteredFriends.map(friend => (
-                                        <li key={`friend-${friend.id}`} className="border-b last:border-b-0">
+                                        <li key={`friend-${friend.id}`} className="border-b dark:border-gray-700 last:border-b-0"> {/* Dark mode border */}
                                             <button
                                                 onClick={() => handleSelectTarget('friend', friend.otherUser.id)}
-                                                className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 text-left"
+                                                className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 text-left" // Dark mode hover
                                             >
                                                 {/* Use Avatar Component */}
                                                 <Avatar name={friend.otherUser.name} size="sm" />
-                                                <span className="text-sm font-medium text-gray-800">{friend.otherUser.name}</span>
+                                                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{friend.otherUser.name}</span> {/* Dark mode text */}
                                             </button>
                                         </li>
                                     ))}
@@ -131,7 +131,7 @@ const SelectExpenseTargetPage: React.FC = () => {
 
                         {/* No Results */}
                         {searchTerm && filteredFriends.length === 0 && filteredGroups.length === 0 && (
-                             <p className="text-center text-gray-500 py-6">No matching friends or groups found.</p>
+                             <p className="text-center text-gray-500 dark:text-gray-400 py-6">{/* Dark mode text */}No matching friends or groups found.</p>
                         )}
                     </div>
                 )}

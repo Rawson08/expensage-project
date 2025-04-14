@@ -74,12 +74,12 @@ const RecordPaymentPage: React.FC = () => {
 
 
   return (
-     <div className="flex flex-col h-screen bg-gray-50">
+     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900"> {/* Dark mode bg */}
         {/* Header */}
-        <header className="flex items-center justify-between p-4 bg-white border-b flex-shrink-0">
-            <button onClick={() => navigate(-1)} className="text-gray-600"><XMarkIcon className="h-6 w-6" /></button>
-            <h1 className="text-lg font-semibold">Record a Payment</h1>
-            <button onClick={handleSubmit} disabled={loading || !otherUserId || !amount} className="text-blue-600 font-semibold disabled:opacity-50"> {/* Use renamed state variable */}
+        <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700 flex-shrink-0"> {/* Dark mode header */}
+            <button onClick={() => navigate(-1)} className="text-gray-600 dark:text-gray-400"><XMarkIcon className="h-6 w-6" /></button> {/* Dark mode button */}
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Record a Payment</h1> {/* Dark mode text */}
+            <button onClick={handleSubmit} disabled={loading || !otherUserId || !amount} className="text-blue-600 dark:text-blue-400 font-semibold disabled:opacity-50"> {/* Dark mode button */}
                 {loading ? 'Saving...' : 'Save'}
             </button>
         </header>
@@ -88,18 +88,18 @@ const RecordPaymentPage: React.FC = () => {
         <main className="flex-grow p-4 space-y-4 overflow-y-auto">
              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Payment Direction Toggle */}
-                 <div className="flex justify-center p-1 bg-gray-200 rounded-lg">
+                 <div className="flex justify-center p-1 bg-gray-200 dark:bg-gray-700 rounded-lg"> {/* Dark mode toggle bg */}
                     <button
                         type="button"
                         onClick={() => setPaymentDirection('paidTo')}
-                        className={`w-1/2 py-2 px-4 rounded-md text-sm font-medium ${paymentDirection === 'paidTo' ? 'bg-white shadow text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                        className={`w-1/2 py-2 px-4 rounded-md text-sm font-medium ${paymentDirection === 'paidTo' ? 'bg-white dark:bg-gray-800 shadow text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600'}`} // Dark mode toggle buttons
                     >
                         You paid someone
                     </button>
                     <button
                         type="button"
                         onClick={() => setPaymentDirection('receivedFrom')}
-                        className={`w-1/2 py-2 px-4 rounded-md text-sm font-medium ${paymentDirection === 'receivedFrom' ? 'bg-white shadow text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                        className={`w-1/2 py-2 px-4 rounded-md text-sm font-medium ${paymentDirection === 'receivedFrom' ? 'bg-white dark:bg-gray-800 shadow text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600'}`} // Dark mode toggle buttons
                     >
                         Someone paid you
                     </button>
@@ -107,7 +107,7 @@ const RecordPaymentPage: React.FC = () => {
 
                 {/* Friend Selection */}
                 <div>
-                    <label htmlFor="paidUser" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="paidUser" className="block text-sm font-medium text-gray-700 dark:text-gray-300"> {/* Dark mode text */}
                     {paymentDirection === 'paidTo' ? 'Recipient:' : 'Payer:'}
                     </label>
                     <select
@@ -115,7 +115,7 @@ const RecordPaymentPage: React.FC = () => {
                     value={otherUserId} // Use renamed state variable
                     onChange={(e) => setOtherUserId(e.target.value)} // Use renamed state variable setter
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" // Dark mode select
                     disabled={loading || friendOptions.length === 0}
                     >
                     <option value="">-- Select Friend --</option>
@@ -125,12 +125,12 @@ const RecordPaymentPage: React.FC = () => {
                         </option>
                     ))}
                     </select>
-                    {friendOptions.length === 0 && <p className="text-xs text-gray-500 mt-1">You have no friends to record payments with.</p>}
+                    {friendOptions.length === 0 && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">You have no friends to record payments with.</p>} {/* Dark mode text */}
                 </div>
 
                 {/* Amount */}
                 <div>
-                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Amount:</label>
+                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount:</label> {/* Dark mode text */}
                     <input
                     type="number"
                     id="amount"
@@ -139,7 +139,7 @@ const RecordPaymentPage: React.FC = () => {
                     required
                     min="0.01"
                     step="0.01"
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode input
                     placeholder="0.00"
                     disabled={loading}
                     />
@@ -147,19 +147,19 @@ const RecordPaymentPage: React.FC = () => {
 
                 {/* Date */}
                 <div>
-                    <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date:</label>
+                    <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date:</label> {/* Dark mode text */}
                     <input
                     type="date"
                     id="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 dark:[color-scheme:dark]" // Dark mode input + color scheme
                     disabled={loading}
                     />
                 </div>
 
-                {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+                {error && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>} {/* Dark mode error text */}
 
                 {/* Submit button is in the header */}
              </form>

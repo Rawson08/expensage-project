@@ -116,21 +116,21 @@ const ActivityPage: React.FC = () => {
 
 
     return (
-        <div className="container mx-auto px-0 sm:px-4 pb-16">
+        <div className="container mx-auto px-0 sm:px-4 pb-16 bg-gray-50 dark:bg-gray-900"> {/* Added default light/dark bg */}
              {/* Header */}
              <div className="p-4">
-                 <h2 className="text-xl font-bold">Recent activity</h2>
+                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recent activity</h2> {/* Dark mode text */}
              </div>
 
-             {isLoading && <p className="text-center text-gray-500 py-6">Loading activity...</p>}
-             {error && <p className="text-center text-red-500 py-6">Error: {error}</p>}
+             {isLoading && <p className="text-center text-gray-500 dark:text-gray-400 py-6">Loading activity...</p>} {/* Dark mode text */}
+             {error && <p className="text-center text-red-500 dark:text-red-400 py-6">Error: {error}</p>} {/* Dark mode text */}
 
              {!isLoading && !error && activities.length === 0 && (
-                 <p className="text-center text-gray-500 py-6">No recent activity.</p>
-             )}
+                 <p className="text-center text-gray-500 dark:text-gray-400 py-6">No recent activity.</p> /* Dark mode text */
+             ) }
 
              {!isLoading && !error && activities.length > 0 && (
-                 <ul className="divide-y divide-gray-200">
+                 <ul className="divide-y divide-gray-200 dark:divide-gray-700"> {/* Dark mode divider */}
                      {activities.map(activity => {
                          const amount = activity.amountChange ?? 0;
                          const isCredit = amount > 0; // User gets money back
@@ -142,25 +142,25 @@ const ActivityPage: React.FC = () => {
                              : ReceiptPercentIcon; // Default for expenses for now
 
                          return (
-                             <li key={activity.id} className="p-4 flex items-start space-x-4 hover:bg-gray-50">
+                             <li key={activity.id} className="p-4 flex items-start space-x-4 hover:bg-gray-50 dark:hover:bg-gray-800"> {/* Dark mode hover */}
                                  {/* Icon */}
-                                 <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mt-1">
-                                     <IconComponent className="h-6 w-6 text-gray-500" />
+                                 <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mt-1"> {/* Dark mode icon bg */}
+                                     <IconComponent className="h-6 w-6 text-gray-500 dark:text-gray-400" /> {/* Dark mode icon color */}
                                      {/* TODO: Add small user avatar overlay like in example? */}
                                  </div>
                                  {/* Text Content */}
                                  <div className="flex-grow">
-                                     <p className="text-sm text-gray-800 leading-snug">
+                                     <p className="text-sm text-gray-800 dark:text-gray-200 leading-snug"> {/* Dark mode text */}
                                          <span className="font-medium">{activity.actorName}</span> {activity.description} {activity.context || ''}.
                                      </p>
                                      {/* Financial Impact (Only show for expense_added type) */}
                                      {activity.type === 'expense_added' && amount !== 0 && (
-                                         <p className={`text-sm font-semibold ${isCredit ? 'text-green-600' : 'text-red-600'}`}>
+                                         <p className={`text-sm font-semibold ${isCredit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}> {/* Dark mode balance text */}
                                              {isCredit ? 'You get back' : 'You paid'} {formatCurrency(Math.abs(amount), activity.currency)}
                                          </p>
                                      )}
                                      {/* Timestamp */}
-                                     <p className="text-xs text-gray-400 mt-1">
+                                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-1"> {/* Dark mode timestamp */}
                                          {formatTimestamp(activity.timestamp)}
                                      </p>
                                  </div>

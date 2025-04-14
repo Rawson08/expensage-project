@@ -78,13 +78,13 @@ const GroupsPage: React.FC = () => {
 
   return (
     // Mobile-first container, padding adjusted for typical mobile view
-    <div className="container mx-auto px-0 sm:px-4 pb-16"> {/* Added padding-bottom for potential bottom nav */}
+    <div className="container mx-auto px-0 sm:px-4 pb-16 bg-gray-50 dark:bg-gray-900"> {/* Added default light/dark bg */}
 
       {/* Header Area - Simplified for now */}
       <div className="p-4 flex justify-between items-center space-x-4">
         {/* Conditionally render Add Group or Search Input */}
         {!showSearchInput ? (
-             <button onClick={() => setShowCreateGroupForm(true)} className="text-blue-600 hover:text-blue-800 flex-shrink-0">
+             <button onClick={() => setShowCreateGroupForm(true)} className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex-shrink-0"> {/* Dark mode button */}
                  <PlusCircleIcon className="h-7 w-7" />
              </button>
         ) : (
@@ -94,22 +94,22 @@ const GroupsPage: React.FC = () => {
                      placeholder="Search groups..."
                      value={searchTerm}
                      onChange={(e) => setSearchTerm(e.target.value)}
-                     className="w-full p-2 pl-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     className="w-full p-2 pl-8 border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode search input
                      autoFocus // Focus input when it appears
                  />
-                 <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+                 <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 absolute left-2 top-1/2 transform -translate-y-1/2" /> {/* Dark mode icon */}
             </div>
         )}
 
         {/* Header Icons (Top Right) */}
         <div className="flex space-x-4 flex-shrink-0">
           {/* Search Toggle Button */}
-          <button onClick={handleToggleSearch} className="text-gray-600 hover:text-gray-800">
+          <button onClick={handleToggleSearch} className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"> {/* Dark mode button */}
             {showSearchInput ? <XMarkIcon className="h-6 w-6" /> : <MagnifyingGlassIcon className="h-6 w-6" />}
           </button>
           {/* Filter Button - Hide when search is active? Optional */}
           {!showSearchInput && (
-              <button onClick={() => setShowFilterModal(true)} className="text-gray-600 hover:text-gray-800">
+              <button onClick={() => setShowFilterModal(true)} className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"> {/* Dark mode button */}
                   <AdjustmentsHorizontalIcon className="h-6 w-6" />
               </button>
           )}
@@ -119,21 +119,21 @@ const GroupsPage: React.FC = () => {
       {/* Overall Balance Summary - Use context data */}
       <div className="p-4 mb-4">
         {/* Use combined loading/error state from context */}
-        {isLoading && <p className="text-center text-gray-500">Loading data...</p>}
-        {error && <p className="text-center text-red-500">Error: {error}</p>}
+        {isLoading && <p className="text-center text-gray-500 dark:text-gray-400">Loading data...</p>} {/* Dark mode text */}
+        {error && <p className="text-center text-red-500 dark:text-red-400">Error: {error}</p>} {/* Dark mode text */}
         {!isLoading && !error && balanceSummary && (
           <div className="text-center">
             {(balanceSummary.totalOwedToUser === 0 && balanceSummary.totalOwedByUser === 0) ? (
-              <p className="text-lg text-gray-600">You are all settled up!</p>
+              <p className="text-lg text-gray-600 dark:text-gray-300">{/* Dark mode text */}You are all settled up!</p>
             ) : (
               <>
                 {balanceSummary.totalOwedToUser > balanceSummary.totalOwedByUser ? (
-                  <p className="text-lg text-gray-600">
-                    Overall, you are owed <span className="font-bold text-green-600">{formatCurrency(balanceSummary.totalOwedToUser - balanceSummary.totalOwedByUser, balanceSummary.currency)}</span>
+                  <p className="text-lg text-gray-600 dark:text-gray-300"> {/* Dark mode text */}
+                    Overall, you are owed <span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(balanceSummary.totalOwedToUser - balanceSummary.totalOwedByUser, balanceSummary.currency)}</span> {/* Dark mode balance */}
                   </p>
                 ) : (
-                  <p className="text-lg text-gray-600">
-                    Overall, you owe <span className="font-bold text-red-600">{formatCurrency(balanceSummary.totalOwedByUser - balanceSummary.totalOwedToUser, balanceSummary.currency)}</span>
+                  <p className="text-lg text-gray-600 dark:text-gray-300"> {/* Dark mode text */}
+                    Overall, you owe <span className="font-bold text-red-600 dark:text-red-400">{formatCurrency(balanceSummary.totalOwedByUser - balanceSummary.totalOwedToUser, balanceSummary.currency)}</span> {/* Dark mode balance */}
                   </p>
                 )}
                 {/* Optional: Show breakdown if needed */}
@@ -145,7 +145,7 @@ const GroupsPage: React.FC = () => {
           </div>
         )}
          {!isLoading && !error && !balanceSummary && (
-             <p className="text-center text-gray-500">Could not load balance summary.</p>
+             <p className="text-center text-gray-500 dark:text-gray-400">Could not load balance summary.</p>
          )}
       </div>
 
@@ -185,7 +185,7 @@ const GroupsPage: React.FC = () => {
             });
 
             if (filteredAndSearchedGroups.length === 0) {
-                return <p className="text-center text-gray-500 py-4">
+                return <p className="text-center text-gray-500 dark:text-gray-400 py-4"> {/* Dark mode text */}
                     {searchTerm ? 'No groups match your search.' : 'No groups match the current filter.'}
                 </p>;
             }
@@ -203,18 +203,18 @@ const GroupsPage: React.FC = () => {
 
                         return (
                             // Key must be on the outermost element in the map (the Link)
-                            <Link key={`group-${group.id}`} to={`/app/group/${group.id}`} className="block bg-white shadow rounded-lg hover:bg-gray-50 transition-colors duration-150">
+                            <Link key={`group-${group.id}`} to={`/app/group/${group.id}`} className="block bg-white dark:bg-gray-800 shadow rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"> {/* Dark mode list item */}
                                 {/* The content of the link is the visual list item */}
                                 <div className="p-3 flex items-center space-x-3">
                                     {/* Group Icon */}
-                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
+                                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 flex-shrink-0"> {/* Dark mode icon container */}
                                         <UserGroupIcon className="h-6 w-6" />
                                     </div>
                                     {/* Group Name & Balance Breakdown */}
                                     <div className="flex-grow min-w-0"> {/* Added min-w-0 for potential text truncation */}
-                                        <span className="font-medium text-gray-800 block truncate">{group.name}</span>
+                                        <span className="font-medium text-gray-800 dark:text-gray-200 block truncate">{group.name}</span> {/* Dark mode text */}
                                         {/* Balance Breakdown Section */}
-                                        <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-0.5"> {/* Dark mode sub-text */}
                                             {groupBalancesMap[group.id] && groupBalancesMap[group.id]
                                                 .filter(b => b.netAmount !== 0) // Filter out zero balances
                                                 .sort((a, b) => {
@@ -226,16 +226,16 @@ const GroupsPage: React.FC = () => {
                                                 .map(balance => (
                                                     <div key={balance.otherUser.id} className="truncate">
                                                         {balance.netAmount < 0 ? (
-                                                            <>You owe {balance.otherUser.name} <span className="text-red-600">{formatCurrency(Math.abs(balance.netAmount))}</span></>
+                                                            <>You owe {balance.otherUser.name} <span className="text-red-600 dark:text-red-400">{formatCurrency(Math.abs(balance.netAmount))}</span></> 
                                                         ) : (
-                                                            <>{balance.otherUser.name} owes you <span className="text-green-600">{formatCurrency(balance.netAmount)}</span></>
+                                                            <>{balance.otherUser.name} owes you <span className="text-green-600 dark:text-green-400">{formatCurrency(balance.netAmount)}</span></> 
                                                         )}
                                                     </div>
                                                 ))
                                             }
                                             {/* Show "Plus X more" if applicable */}
                                             {groupBalancesMap[group.id] && groupBalancesMap[group.id].filter(b => b.netAmount !== 0).length > 2 && (
-                                                <div className="text-xs text-gray-400 italic">
+                                                <div className="text-xs text-gray-400 dark:text-gray-500 italic"> {/* Dark mode "more" text */}
                                                     Plus {groupBalancesMap[group.id].filter(b => b.netAmount !== 0).length - 2} more balance{groupBalancesMap[group.id].filter(b => b.netAmount !== 0).length - 2 > 1 ? 's' : ''}
                                                 </div>
                                             )}
@@ -244,13 +244,13 @@ const GroupsPage: React.FC = () => {
                                     {/* Balance */}
                                     <div className="text-right flex-shrink-0">
                                         {netBalance === 0 ? (
-                                            <span className="text-sm text-gray-500">Settled up</span>
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">Settled up</span> 
                                         ) : (
                                             <>
-                                                <span className={`text-xs block ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                                                <span className={`text-xs block ${isOwed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}> {/* Dark mode sub-text */}
                                                     {isOwed ? 'you are owed' : 'you owe'}
                                                 </span>
-                                                <span className={`font-medium ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                                                <span className={`font-medium ${isOwed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}> {/* Dark mode balance text */}
                                                     {formatCurrency(balanceAmount, balanceSummary?.currency || 'USD')}
                                                 </span>
                                             </>
@@ -282,7 +282,7 @@ const GroupsPage: React.FC = () => {
        {/* Create Group Form Modal */}
        {showCreateGroupForm && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-20 flex items-center justify-center">
-                <div className="relative mx-auto p-1 border w-full max-w-md shadow-lg rounded-md bg-white">
+                <div className="relative mx-auto p-1 border dark:border-gray-700 w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800"> {/* Dark mode modal */}
                      <div className="p-4">
                         <CreateGroupForm
                             onGroupCreated={handleGroupCreated}

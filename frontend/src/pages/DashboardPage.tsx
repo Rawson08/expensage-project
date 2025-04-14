@@ -219,38 +219,38 @@ const DashboardPage: React.FC = () => {
 
   return (
     // Mobile-first container, padding adjusted for typical mobile view
-    <div className="container mx-auto px-0 sm:px-4 pb-16"> {/* Added padding-bottom for potential bottom nav */}
+    <div className="container mx-auto px-0 sm:px-4 pb-16 bg-gray-50 dark:bg-gray-900"> {/* Added default light/dark bg */}
 
       {/* Header Area - Simplified for now */}
       <div className="p-4 flex justify-between items-center">
         {/* Placeholder for Logo/App Name */}
-        <div className="text-xl font-bold text-green-600">ExpenSage</div>
-        {/* Placeholder for Header Icons (Search, Add Friend, Filters) */}
+        <div className="text-xl font-bold text-green-600 dark:text-green-400">ExpenSage</div> {/* Dark mode text */}
+        {/* Placeholder for Header Icons */}
         <div className="flex space-x-4">
           {/* Actual Header Icons */}
-          <button className="text-gray-600 hover:text-gray-800"><MagnifyingGlassIcon className="h-6 w-6" /></button>
-          <button className="text-gray-600 hover:text-gray-800"><UserPlusIcon className="h-6 w-6" /></button>
-          <button className="text-gray-600 hover:text-gray-800"><AdjustmentsHorizontalIcon className="h-6 w-6" /></button>
+          <button className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"><MagnifyingGlassIcon className="h-6 w-6" /></button> {/* Dark mode icons */}
+          <button className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"><UserPlusIcon className="h-6 w-6" /></button> {/* Dark mode icons */}
+          <button className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"><AdjustmentsHorizontalIcon className="h-6 w-6" /></button> {/* Dark mode icons */}
         </div>
       </div>
 
       {/* Overall Balance Summary */}
       <div className="p-4 mb-4">
-        {isLoadingBalances && <p className="text-center text-gray-500">Loading overall balance...</p>}
-        {errorBalances && <p className="text-center text-red-500">Error: {errorBalances}</p>}
+        {isLoadingBalances && <p className="text-center text-gray-500 dark:text-gray-400">Loading overall balance...</p> /* Dark mode text */}
+        {errorBalances && <p className="text-center text-red-500 dark:text-red-400">Error: {errorBalances}</p> /* Dark mode text */}
         {!isLoadingBalances && !errorBalances && balanceSummary && (
           <div className="text-center">
             {(balanceSummary.totalOwedToUser === 0 && balanceSummary.totalOwedByUser === 0) ? (
-              <p className="text-lg text-gray-600">You are all settled up!</p>
+              <p className="text-lg text-gray-600 dark:text-gray-300">{/* Dark mode text */}You are all settled up!</p>
             ) : (
               <>
                 {balanceSummary.totalOwedToUser > balanceSummary.totalOwedByUser ? (
-                  <p className="text-lg text-gray-600">
-                    Overall, you are owed <span className="font-bold text-green-600">{formatCurrency(balanceSummary.totalOwedToUser - balanceSummary.totalOwedByUser, balanceSummary.currency)}</span>
+                  <p className="text-lg text-gray-600 dark:text-gray-300"> {/* Dark mode text */}
+                    Overall, you are owed <span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(balanceSummary.totalOwedToUser - balanceSummary.totalOwedByUser, balanceSummary.currency)}</span>{/* Dark mode balance */}
                   </p>
                 ) : (
-                  <p className="text-lg text-gray-600">
-                    Overall, you owe <span className="font-bold text-red-600">{formatCurrency(balanceSummary.totalOwedByUser - balanceSummary.totalOwedToUser, balanceSummary.currency)}</span>
+                  <p className="text-lg text-gray-600 dark:text-gray-300"> {/* Dark mode text */}
+                    Overall, you owe <span className="font-bold text-red-600 dark:text-red-400">{formatCurrency(balanceSummary.totalOwedByUser - balanceSummary.totalOwedToUser, balanceSummary.currency)}</span>{/* Dark mode balance */}
                   </p>
                 )}
                 {/* Optional: Show breakdown if needed */}
@@ -262,17 +262,17 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
          {!isLoadingBalances && !errorBalances && !balanceSummary && (
-             <p className="text-center text-gray-500">Could not load balance summary.</p>
-         )}
+             <p className="text-center text-gray-500 dark:text-gray-400">Could not load balance summary.</p> /* Dark mode text */
+         ) }
       </div>
 
       {/* Group Balances List */}
       <div className="px-2"> {/* Slight horizontal padding for list items */}
-        {(isLoadingGroups || isLoadingFriends) && <p className="text-center text-gray-500 py-4">Loading balances...</p>}
-        {errorGroups && <p className="text-center text-red-500 py-4">Error loading groups: {errorGroups}</p>}
-        {errorFriends && <p className="text-center text-red-500 py-4">Error loading friends: {errorFriends}</p>}
-        {/* Group balance errors are handled below within the loop potentially */}
-        {errorGroupBalances && <p className="text-center text-red-500 py-4">Error loading group balances: {errorGroupBalances}</p>}
+        {(isLoadingGroups || isLoadingFriends) && <p className="text-center text-gray-500 dark:text-gray-400 py-4">Loading balances...</p> /* Dark mode text */}
+        {errorGroups && <p className="text-center text-red-500 dark:text-red-400 py-4">Error loading groups: {errorGroups}</p> /* Dark mode text */}
+        {errorFriends && <p className="text-center text-red-500 dark:text-red-400 py-4">Error loading friends: {errorFriends}</p> /* Dark mode text */}
+        {/* Group balance errors handled below */}
+        {errorGroupBalances && <p className="text-center text-red-500 dark:text-red-400 py-4">Error loading group balances: {errorGroupBalances}</p> /* Dark mode text */}
 
 
         {/* Combined rendering logic for Groups, Friends, and Non-Group */}
@@ -280,7 +280,7 @@ const DashboardPage: React.FC = () => {
           (groups.filter(g => netGroupBalances[g.id] !== undefined && netGroupBalances[g.id] !== 0).length === 0 &&
            friends.filter(f => f.netBalance && f.netBalance !== 0).length === 0 &&
            nonGroupNetBalance === 0) ? (
-            <p className="text-center text-gray-500 py-4">No balances to show.</p> // Show only if ALL sections are empty/settled
+            <p className="text-center text-gray-500 dark:text-gray-400 py-4">{/* Dark mode text */}No balances to show.</p>
           ) : (
             <ul className="space-y-3"> {/* Spacing between list items */}
 
@@ -294,22 +294,22 @@ const DashboardPage: React.FC = () => {
                 const balanceAmount = Math.abs(netBalance);
 
                 return (
-                  <li key={`group-${group.id}`} className="bg-white shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 transition-colors duration-150">
+                  <li key={`group-${group.id}`} className="bg-white dark:bg-gray-800 shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"> {/* Dark mode list item */}
                     {/* Group Icon */}
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400"> {/* Dark mode icon container */}
                         <UserGroupIcon className="h-6 w-6" />
                     </div>
                     <div className="flex-grow">
-                      <Link to={`/app/group/${group.id}`} className="font-medium text-gray-800 hover:text-blue-600">
+                      <Link to={`/app/group/${group.id}`} className="font-medium text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"> {/* Dark mode text/link */}
                         {group.name}
                       </Link>
                       {/* TODO: Add inner balance details if needed */}
                     </div>
                     <div className="text-right">
-                      <span className={`text-xs block ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`text-xs block ${isOwed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}> {/* Dark mode sub-text */}
                         {isOwed ? 'you are owed' : 'you owe'}
                       </span>
-                      <span className={`font-medium ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`font-medium ${isOwed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}> {/* Dark mode balance text */}
                         {formatCurrency(balanceAmount, balanceSummary?.currency || 'USD')}
                       </span>
                     </div>
@@ -326,20 +326,20 @@ const DashboardPage: React.FC = () => {
                   const balanceAmount = Math.abs(friendship.netBalance);
 
                   return (
-                      <li key={`friend-${friendship.id}`} className="bg-white shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 transition-colors duration-150">
+                      <li key={`friend-${friendship.id}`} className="bg-white dark:bg-gray-800 shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"> {/* Dark mode list item */}
                           {/* Friend Icon */}
-                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
+                          <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400"> {/* Dark mode icon container */}
                               <UserIcon className="h-6 w-6" />
                           </div>
                           <div className="flex-grow">
                               {/* TODO: Link to friend detail page? */}
-                              <span className="font-medium text-gray-800">{friendship.otherUser.name}</span>
+                              <span className="font-medium text-gray-800 dark:text-gray-200">{friendship.otherUser.name}</span> {/* Dark mode text */}
                           </div>
                           <div className="text-right">
-                              <span className={`text-xs block ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
-                                  {isOwed ? `${friendship.otherUser.name} owes you` : 'you owe'} {/* Adjusted text based on who owes */}
+                              <span className={`text-xs block ${isOwed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}> {/* Dark mode sub-text */}
+                                  {isOwed ? `${friendship.otherUser.name} owes you` : 'you owe'}
                               </span>
-                              <span className={`font-medium ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                              <span className={`font-medium ${isOwed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}> {/* Dark mode balance text */}
                                   {formatCurrency(balanceAmount, balanceSummary?.currency || 'USD')}
                               </span>
                           </div>
@@ -349,24 +349,24 @@ const DashboardPage: React.FC = () => {
 
               {/* Render Non-Group Expenses Summary */}
               {nonGroupNetBalance !== 0 && (
-                  <li key="non-group" className="bg-white shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 transition-colors duration-150">
+                  <li key="non-group" className="bg-white dark:bg-gray-800 shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"> {/* Dark mode list item */}
                       {/* Non-Group Icon */}
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-600">
+                      <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-300"> {/* Dark mode icon container */}
                           <DocumentTextIcon className="h-6 w-6" />
                       </div>
                       <div className="flex-grow">
-                          <span className="font-medium text-gray-800">Non-group expenses</span>
+                          <span className="font-medium text-gray-800 dark:text-gray-200">Non-group expenses</span> {/* Dark mode text */}
                       </div>
                       <div className="text-right">
                           {nonGroupNetBalance > 0 ? (
                               <>
-                                  <span className="text-xs text-green-600 block">you are owed</span>
-                                  <span className="font-medium text-green-600">{formatCurrency(nonGroupNetBalance, balanceSummary?.currency || 'USD')}</span>
+                                  <span className="text-xs text-green-600 dark:text-green-400 block">you are owed</span> {/* Dark mode sub-text */}
+                                  <span className="font-medium text-green-600 dark:text-green-400">{formatCurrency(nonGroupNetBalance, balanceSummary?.currency || 'USD')}</span> {/* Dark mode balance text */}
                               </>
                           ) : (
                               <>
-                                  <span className="text-xs text-red-600 block">you owe</span>
-                                  <span className="font-medium text-red-600">{formatCurrency(Math.abs(nonGroupNetBalance), balanceSummary?.currency || 'USD')}</span>
+                                  <span className="text-xs text-red-600 dark:text-red-400 block">you owe</span> {/* Dark mode sub-text */}
+                                  <span className="font-medium text-red-600 dark:text-red-400">{formatCurrency(Math.abs(nonGroupNetBalance), balanceSummary?.currency || 'USD')}</span> {/* Dark mode balance text */}
                               </>
                           )}
                       </div>
@@ -394,7 +394,7 @@ const DashboardPage: React.FC = () => {
        {/* Create Group Form Modal */}
        {showCreateGroupForm && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-20 flex items-center justify-center">
-                <div className="relative mx-auto p-1 border w-full max-w-md shadow-lg rounded-md bg-white">
+                <div className="relative mx-auto p-1 border dark:border-gray-700 w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800"> {/* Dark mode modal */}
                      <div className="p-4">
                         <CreateGroupForm
                             onGroupCreated={handleGroupCreated}

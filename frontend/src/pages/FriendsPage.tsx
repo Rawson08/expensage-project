@@ -213,7 +213,7 @@ const FriendsPage: React.FC = () => {
 
     return (
         // Adjusted padding for consistency with GroupsPage within MainLayout
-        <div className="container mx-auto px-0 sm:px-4 pb-4">
+        <div className="container mx-auto px-0 sm:px-4 pb-4 bg-gray-50 dark:bg-gray-900"> {/* Added default light/dark bg */}
             {/* Header - Can potentially be removed if MainLayout handles it */}
             {/* <div className="p-4 flex justify-between items-center">
                  <h2 className="text-xl font-bold">Friends</h2>
@@ -222,21 +222,21 @@ const FriendsPage: React.FC = () => {
             {/* Overall Balance Summary */}
             <div className="p-4 mb-4 text-center"> {/* Added text-center */}
                 {/* Use context loading/error for balance summary */}
-                {isLoading && <p className="text-gray-500">Loading overall balance...</p>}
-                {error && <p className="text-red-500">Error: {error}</p>}
+                {isLoading && <p className="text-gray-500 dark:text-gray-400">Loading overall balance...</p>} {/* Dark mode text */}
+                {error && <p className="text-red-500 dark:text-red-400">Error: {error}</p>} {/* Dark mode text */}
                 {!isLoading && !error && balanceSummary && (
                     <>
                         {(balanceSummary.totalOwedToUser === 0 && balanceSummary.totalOwedByUser === 0) ? (
-                            <p className="text-lg text-gray-600">You are all settled up!</p>
+                            <p className="text-lg text-gray-600 dark:text-gray-300">{/* Dark mode text */}You are all settled up!</p>
                         ) : (
                             <>
                                 {balanceSummary.totalOwedToUser >= balanceSummary.totalOwedByUser ? ( // Show owed if >= 0 net
-                                    <p className="text-lg text-gray-600">
-                                        Overall, you are owed <span className="font-bold text-green-600">{formatCurrency(balanceSummary.totalOwedToUser - balanceSummary.totalOwedByUser, balanceSummary.currency)}</span>
+                                    <p className="text-lg text-gray-600 dark:text-gray-300"> {/* Dark mode text */}
+                                        Overall, you are owed <span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(balanceSummary.totalOwedToUser - balanceSummary.totalOwedByUser, balanceSummary.currency)}</span>{/* Dark mode balance */}
                                     </p>
                                 ) : (
-                                    <p className="text-lg text-gray-600">
-                                        Overall, you owe <span className="font-bold text-red-600">{formatCurrency(balanceSummary.totalOwedByUser - balanceSummary.totalOwedToUser, balanceSummary.currency)}</span>
+                                    <p className="text-lg text-gray-600 dark:text-gray-300"> {/* Dark mode text */}
+                                        Overall, you owe <span className="font-bold text-red-600 dark:text-red-400">{formatCurrency(balanceSummary.totalOwedByUser - balanceSummary.totalOwedToUser, balanceSummary.currency)}</span>{/* Dark mode balance */}
                                     </p>
                                 )}
                             </>
@@ -244,15 +244,15 @@ const FriendsPage: React.FC = () => {
                     </>
                 )}
                 {!isLoading && !error && !balanceSummary && (
-                    <p className="text-gray-500">Could not load balance summary.</p> // Keep this specific message
-                )}
+                    <p className="text-gray-500 dark:text-gray-400">Could not load balance summary.</p> /* Dark mode text */
+                ) }
             </div>
 
             {/* Action Buttons Row */}
             <div className="px-4 mb-4 flex justify-end space-x-3">
                  <Link
                     to="/app/settle-up"
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded shadow text-sm"
+                    className="bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white font-medium py-2 px-4 rounded shadow text-sm" // Dark mode button
                  >
                      Settle Up
                  </Link>
@@ -260,33 +260,33 @@ const FriendsPage: React.FC = () => {
             </div>
 
              {/* Add Friend Form */}
-            <form onSubmit={handleAddFriend} className="mb-8 p-4 border rounded shadow-sm bg-white">
+            <form onSubmit={handleAddFriend} className="mb-8 p-4 border dark:border-gray-700 rounded shadow-sm bg-white dark:bg-gray-800"> {/* Dark mode form bg/border */}
                 {/* ... form content ... */}
-                 <h3 className="text-lg font-semibold mb-3">Add Friend</h3>
+                 <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Add Friend</h3> {/* Dark mode text */}
                 <div className="flex items-center space-x-2">
                     <input
                         type="email"
                         value={friendEmail}
                         onChange={(e) => setFriendEmail(e.target.value)}
                         placeholder="Enter friend's email"
-                        className="flex-grow p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-grow p-2 border dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode input
                         required
                     />
                     <button
                         type="submit"
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded shadow disabled:opacity-50"
+                        className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow disabled:opacity-50" // Dark mode button
                         disabled={!friendEmail}
                     >
                         Send Request
                     </button>
                 </div>
-                 {addFriendError && <p className="text-red-500 text-sm mt-2">{addFriendError}</p>}
+                 {addFriendError && <p className="text-red-500 dark:text-red-400 text-sm mt-2">{addFriendError}</p>} {/* Dark mode error text */}
             </form>
 
             {/* Use combined loading state, show request loading separately */}
             {/* Use combined loading/error state from context */}
-            {isLoading && <p className="text-center text-gray-500 py-4">Loading data...</p>}
-            {error && <p className="text-center text-red-500 py-4">Error: {error}</p>}
+            {isLoading && <p className="text-center text-gray-500 dark:text-gray-400 py-4">Loading data...</p> /* Dark mode text */}
+            {error && <p className="text-center text-red-500 dark:text-red-400 py-4">Error: {error}</p> /* Dark mode text */}
 
             {!isLoading && !error && ( // Use combined loading/error state
                 // Single column layout
@@ -297,12 +297,12 @@ const FriendsPage: React.FC = () => {
                         {/* Optional: Add a subtle header if needed */}
                         {/* <h3 className="text-md font-semibold mb-2 text-gray-600 px-2">Your Friends</h3> */}
                         {friends.length === 0 ? (
-                            <p className="text-center text-gray-500 py-4">No friends yet. Use the form below to add some!</p>
+                            <p className="text-center text-gray-500 dark:text-gray-400 py-4">{/* Dark mode text */}No friends yet. Use the form below to add some!</p>
                          ) : (
                             <ul className="space-y-3">
                                 {friends.map(friend => {
                                     if (!friend.otherUser) {
-                                        return <li key={friend.id} className="py-2 px-3 text-red-500 text-sm"> Error: Friend data incomplete (ID: {friend.id}) </li>;
+                                        return <li key={friend.id} className="py-2 px-3 text-red-500 dark:text-red-400 text-sm"> Error: Friend data incomplete (ID: {friend.id}) </li>; /* Dark mode error text */
                                     }
 
                                     // Calculate combined balance
@@ -317,19 +317,19 @@ const FriendsPage: React.FC = () => {
                                     const balanceAmount = Math.abs(totalNetBalance);
 
                                     return (
-                                        <li key={friend.id} className="bg-white shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 transition-colors duration-150">
+                                        <li key={friend.id} className="bg-white dark:bg-gray-800 shadow rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"> {/* Dark mode list item */}
                                             {/* Use Avatar Component */}
                                             <Avatar name={friend.otherUser.name} size="md" />
                                             {/* Friend Name & Breakdown */}
                                             <div className="flex-grow min-w-0">
-                                                <span className="font-medium text-gray-800 block truncate">{friend.otherUser.name}</span>
+                                                <span className="font-medium text-gray-800 dark:text-gray-200 block truncate">{friend.otherUser.name}</span>{/* Dark mode text */}
                                                 {/* Non-group Balance Breakdown */}
                                                 {nonGroupBalance !== 0 && (
-                                                     <div className="text-xs text-gray-500 mt-1">
+                                                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{/* Dark mode sub-text */}
                                                         {nonGroupBalance > 0 ? (
-                                                            <>owes you <span className="text-green-700">{formatCurrency(nonGroupBalance)}</span> in non-group</>
+                                                            <>owes you <span className="text-green-700 dark:text-green-500">{formatCurrency(nonGroupBalance)}{/* Dark mode balance */}</span> in non-group</>
                                                         ) : (
-                                                            <>you owe <span className="text-red-700">{formatCurrency(Math.abs(nonGroupBalance))}</span> in non-group</>
+                                                            <>you owe <span className="text-red-700 dark:text-red-500">{formatCurrency(Math.abs(nonGroupBalance))}{/* Dark mode balance */}</span> in non-group</>
                                                         )}
                                                     </div>
                                                 )}
@@ -339,21 +339,21 @@ const FriendsPage: React.FC = () => {
                                             <div className="text-right flex-shrink-0 w-24">
                                                 {(isOwed || isOwing) ? (
                                                     <>
-                                                        <span className={`text-xs block ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
-                                                            {isOwed ? `owes you` : 'you owe'} {/* Simplified text */}
+                                                        <span className={`text-xs block ${isOwed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{/* Dark mode sub-text */}
+                                                            {isOwed ? `owes you` : 'you owe'}
                                                         </span>
-                                                        <span className={`font-medium ${isOwed ? 'text-green-600' : 'text-red-600'}`}>
+                                                        <span className={`font-medium ${isOwed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{/* Dark mode balance text */}
                                                             {formatCurrency(balanceAmount)}
                                                         </span>
                                                     </>
                                                 ) : (
-                                                    <span className="text-sm text-gray-500">Settled up</span>
-                                                )} {/* Correctly closed ternary operator */}
+                                                    <span className="text-sm text-gray-500 dark:text-gray-400">{/* Dark mode text */}Settled up</span>
+                                                ) } {/* Correctly closed ternary operator */}
                                             </div>
                                             {/* Remove Button - Less prominent? */}
                                             <button
                                                 onClick={() => handleRemove(friend.id, friend.otherUser.name)}
-                                                className="text-gray-400 hover:text-red-600 ml-2 p-1 rounded-full hover:bg-red-50"
+                                                className="text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400 ml-2 p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/50" // Dark mode remove button
                                                 title="Remove Friend"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -371,43 +371,43 @@ const FriendsPage: React.FC = () => {
 
                     {/* Incoming Requests */}
                     {/* Incoming Requests Section - Use contextIncomingRequests */}
-                    <div className="p-4 border rounded shadow-sm bg-white">
-                        <h3 className="text-lg font-semibold mb-3 border-b pb-2">Incoming Requests ({contextIncomingRequests.length})</h3>
-                         {contextIncomingRequests.length === 0 ? ( <p className="text-gray-500">No incoming requests.</p> ) : (
-                            <ul className="divide-y divide-gray-200">
+                    <div className="p-4 border dark:border-gray-700 rounded shadow-sm bg-white dark:bg-gray-800"> {/* Dark mode section bg/border */}
+                        <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 text-gray-900 dark:text-gray-100">Incoming Requests ({contextIncomingRequests.length})</h3> {/* Dark mode header */}
+                         {contextIncomingRequests.length === 0 ? ( <p className="text-gray-500 dark:text-gray-400">No incoming requests.</p> /* Dark mode text */ ) : (
+                            <ul className="divide-y divide-gray-200 dark:divide-gray-600"> {/* Dark mode divider */}
                                 {contextIncomingRequests.map(req => (
                                     req.otherUser ? (
                                         <li key={req.id} className="py-3 flex justify-between items-center">
                                             <div>
-                                                <span className="font-medium">{req.otherUser.name}</span>
-                                                <span className="text-sm text-gray-500 ml-2">({req.otherUser.email})</span>
+                                                <span className="font-medium text-gray-900 dark:text-gray-100">{req.otherUser.name}</span> {/* Dark mode text */}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">({req.otherUser.email})</span> {/* Dark mode text */}
                                             </div>
                                             <div className="space-x-2 flex-shrink-0">
-                                                <button onClick={() => handleAccept(req.id)} className="bg-green-100 text-green-700 hover:bg-green-200 text-xs font-semibold px-2 py-1 rounded">Accept</button>
-                                                <button onClick={() => handleReject(req.id)} className="bg-red-100 text-red-700 hover:bg-red-200 text-xs font-semibold px-2 py-1 rounded">Reject</button>
+                                                <button onClick={() => handleAccept(req.id)} className="bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 text-xs font-semibold px-2 py-1 rounded">Accept</button> {/* Dark mode button */}
+                                                <button onClick={() => handleReject(req.id)} className="bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 text-xs font-semibold px-2 py-1 rounded">Reject</button> {/* Dark mode button */}
                                             </div>
                                         </li>
-                                    ) : ( <li key={req.id} className="py-2 text-red-500 text-sm"> Error: Request data incomplete (ID: {req.id}) </li> )
+                                    ) : ( <li key={req.id} className="py-2 text-red-500 dark:text-red-400 text-sm"> Error: Request data incomplete (ID: {req.id}) </li> /* Dark mode error text */ )
                                 ))}
                             </ul>
                         )}
                     </div>
 
                     {/* Outgoing Requests Section - Use contextOutgoingRequests */}
-                    <div className="p-4 border rounded shadow-sm bg-white">
-                        <h3 className="text-lg font-semibold mb-3 border-b pb-2">Outgoing Requests ({contextOutgoingRequests.length})</h3>
-                         {contextOutgoingRequests.length === 0 ? ( <p className="text-gray-500">No outgoing requests.</p> ) : (
-                            <ul className="divide-y divide-gray-200">
+                    <div className="p-4 border dark:border-gray-700 rounded shadow-sm bg-white dark:bg-gray-800"> {/* Dark mode section bg/border */}
+                        <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 text-gray-900 dark:text-gray-100">Outgoing Requests ({contextOutgoingRequests.length})</h3> {/* Dark mode header */}
+                         {contextOutgoingRequests.length === 0 ? ( <p className="text-gray-500 dark:text-gray-400">No outgoing requests.</p> /* Dark mode text */ ) : (
+                            <ul className="divide-y divide-gray-200 dark:divide-gray-600"> {/* Dark mode divider */}
                                 {contextOutgoingRequests.map(req => (
                                      req.otherUser ? (
                                         <li key={req.id} className="py-3 flex justify-between items-center">
                                             <div>
-                                                <span className="font-medium">{req.otherUser.name}</span>
-                                                <span className="text-sm text-gray-500 ml-2">({req.otherUser.email})</span>
+                                                <span className="font-medium text-gray-900 dark:text-gray-100">{req.otherUser.name}</span> {/* Dark mode text */}
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">({req.otherUser.email})</span> {/* Dark mode text */}
                                             </div>
-                                            <button onClick={() => handleRemove(req.id, req.otherUser.name)} className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs font-semibold px-2 py-1 rounded flex-shrink-0">Cancel</button>
+                                            <button onClick={() => handleRemove(req.id, req.otherUser.name)} className="bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 text-xs font-semibold px-2 py-1 rounded flex-shrink-0">Cancel</button> {/* Dark mode button */}
                                         </li>
-                                     ) : ( <li key={req.id} className="py-2 text-red-500 text-sm"> Error: Request data incomplete (ID: {req.id}) </li> )
+                                     ) : ( <li key={req.id} className="py-2 text-red-500 dark:text-red-400 text-sm"> Error: Request data incomplete (ID: {req.id}) </li> /* Dark mode error text */ )
                                 ))}
                             </ul>
                         )}

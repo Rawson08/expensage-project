@@ -31,9 +31,13 @@ apiClient.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Handle unauthorized access
       console.error('Unauthorized access - 401. Clearing token.'); // Keep error log for this case
-      localStorage.removeItem('authToken');
-      // Consider redirecting to login or showing a message
-      // window.location.href = '/login';
+      localStorage.removeItem('authToken'); // Clear the expired token
+      localStorage.removeItem('authUser'); // Also clear the user data
+      // Force redirect to login page. This effectively logs the user out.
+      // Check if we are already on the login page to prevent redirect loops
+      if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+      }
     }
     // Pass through other errors
     return Promise.reject(error);

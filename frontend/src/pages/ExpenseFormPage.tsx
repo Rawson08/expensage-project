@@ -244,50 +244,50 @@ const ExpenseFormPage: React.FC = () => {
     };
 
     // --- Render ---
-    if (isContextLoading) return <div className="p-4 text-center">Loading data...</div>;
-    if (contextError) return <div className="p-4 text-center text-red-500">Error: {contextError}</div>;
+    if (isContextLoading) return <div className="p-4 text-center text-gray-500 dark:text-gray-400">Loading data...</div>;
+    if (contextError) return <div className="p-4 text-center text-red-500 dark:text-red-400">Error: {contextError}</div>;
 
     const selectedGroupName = selectedGroupId ? contextGroups.find(g => g.id === selectedGroupId)?.name : 'No group';
 
     return (
-        <div className="flex flex-col h-screen bg-gray-50">
-            <header className="flex items-center justify-between p-4 bg-white border-b flex-shrink-0">
-                <button onClick={() => navigate(-1)} className="text-gray-600"><XMarkIcon className="h-6 w-6" /></button>
-                <h1 className="text-lg font-semibold">Add an expense</h1>
-                <button onClick={handleSave} disabled={isSaving} className="text-blue-600 font-semibold disabled:opacity-50">{isSaving ? 'Saving...' : 'Save'}</button>
+        <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+            <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700 flex-shrink-0">
+                <button onClick={() => navigate(-1)} className="text-gray-600 dark:text-gray-400"><XMarkIcon className="h-6 w-6" /></button>
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Add an expense</h1>
+                <button onClick={handleSave} disabled={isSaving} className="text-blue-600 dark:text-blue-400 font-semibold disabled:opacity-50">{isSaving ? 'Saving...' : 'Save'}</button>
             </header>
 
             <main className="flex-grow p-3 space-y-3 overflow-y-auto">
-                 <div className="flex items-center space-x-2 flex-wrap gap-y-1 bg-white p-3 rounded-lg shadow-sm">
-                    <span className="text-gray-600 mr-1">With:</span>
+                 <div className="flex items-center space-x-2 flex-wrap gap-y-1 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+                    <span className="text-gray-600 dark:text-gray-400 mr-1">With:</span>
                     {selectedParticipants.map(p => (
-                         <span key={p.id} className="inline-flex items-center bg-gray-200 text-gray-700 text-sm font-medium px-2 py-0.5 rounded-full">
+                         <span key={p.id} className="inline-flex items-center bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium px-2 py-0.5 rounded-full">
                             <span className="inline-block h-4 w-4 rounded-full bg-gray-400 mr-1.5"></span>
                             {p.id === user?.id ? 'You' : p.name}
                          </span>
                     ))}
-                     {selectedParticipants.length === 0 && <span className="text-sm text-red-500">No participants selected (Error?)</span>}
+                     {selectedParticipants.length === 0 && <span className="text-sm text-red-500 dark:text-red-400">No participants selected (Error?)</span>}
                 </div>
 
-                <div className="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm">
-                    <div className="p-2 bg-gray-100 rounded"><Bars3BottomLeftIcon className="h-6 w-6 text-gray-500" /></div>
-                    <input type="text" placeholder="Enter a description" value={description} onChange={(e) => setDescription(e.target.value)} className="flex-grow p-2 border-b focus:outline-none focus:border-blue-500" />
+                <div className="flex items-center space-x-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+                    <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded"><Bars3BottomLeftIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" /></div>
+                    <input type="text" placeholder="Enter a description" value={description} onChange={(e) => setDescription(e.target.value)} className="flex-grow p-2 border-b dark:border-gray-600 focus:outline-none focus:border-blue-500 bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" />
                 </div>
-                <div className="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm">
-                     <div className="p-2 bg-gray-100 rounded"><CurrencyDollarIcon className="h-6 w-6 text-gray-500" /></div>
-                    <input type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} className="flex-grow p-2 border-b focus:outline-none focus:border-blue-500 text-xl" inputMode="decimal" />
+                <div className="flex items-center space-x-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+                     <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded"><CurrencyDollarIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" /></div>
+                    <input type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} className="flex-grow p-2 border-b dark:border-gray-600 focus:outline-none focus:border-blue-500 text-xl bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" inputMode="decimal" />
                 </div>
 
                  {/* Payer Input Section */}
-                <fieldset className="bg-white p-3 rounded-lg shadow-sm border">
-                    <legend className="text-sm font-medium text-gray-700 px-1">Paid By</legend>
+                <fieldset className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+                    <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-1">Paid By</legend>
                     {payers.map((payer, index) => (
                         <div key={index} className="flex items-center space-x-2 mb-2 last:mb-0">
                             <select
                                 value={payer.userId || ''}
                                 onChange={(e) => handlePayerChange(index, 'userId', parseInt(e.target.value))}
                                 required
-                                className="flex-grow mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+                                className="flex-grow mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" // Dark mode select
                                 disabled={isSaving}
                             >
                                 <option value="0">-- Select Payer --</option>
@@ -305,55 +305,55 @@ const ExpenseFormPage: React.FC = () => {
                                     required
                                     min="0.01"
                                     step="0.01"
-                                    className="mt-1 block w-1/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-1/3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" // Dark mode input
                                     placeholder="0.00"
                                     disabled={isSaving}
                                 />
                             )}
                             {payers.length > 1 && (
-                                <button type="button" onClick={() => removePayer(index)} className="text-red-600 hover:text-red-800 text-sm p-1 flex-shrink-0" disabled={isSaving}>Remove</button>
-                            )}
+                                <button type="button" onClick={() => removePayer(index)} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm p-1 flex-shrink-0" disabled={isSaving}>Remove</button>
+                            ) }
                         </div>
                     ))}
-                    <button type="button" onClick={addPayer} className="text-indigo-600 hover:text-indigo-800 text-sm mt-1" disabled={isSaving}>+ Add another payer</button>
+                    <button type="button" onClick={addPayer} className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm mt-1" disabled={isSaving}>+ Add another payer</button>
                 </fieldset>
 
                 {/* Split Info Button */}
                  <div className="text-center">
-                    <button type="button" onClick={handleSplitOptions} className="text-blue-600 text-sm border border-gray-300 rounded-full px-4 py-1 hover:bg-gray-100">
+                    <button type="button" onClick={handleSplitOptions} className="text-blue-600 dark:text-blue-400 text-sm border border-gray-300 dark:border-gray-600 rounded-full px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">
                          Split {splitType.toLowerCase()}
                     </button>
                 </div>
 
                 {/* Notes Input Area */}
-                <div className="bg-white p-3 rounded-lg shadow-sm">
-                     <label htmlFor="notes-area" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                     <textarea id="notes-area" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full p-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y" placeholder="Add notes..." disabled={isSaving} />
+                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+                     <label htmlFor="notes-area" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                     <textarea id="notes-area" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full p-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" placeholder="Add notes..." disabled={isSaving} />
                 </div>
 
                  {/* Receipt Upload Area */}
-                 <div className="bg-white p-3 rounded-lg shadow-sm">
-                     <label className="block text-sm font-medium text-gray-700 mb-1">Attach Receipt (Optional - Scans & Autofills)</label>
+                 <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attach Receipt (Optional - Scans & Autofills)</label>
                      <input type="file" id="receipt-upload" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} accept="image/*,.pdf" disabled={isSaving || scanLoading} />
-                     <button type="button" onClick={() => fileInputRef.current?.click()} className="mt-1 text-sm text-blue-600 hover:underline disabled:opacity-50" disabled={isSaving || scanLoading}>
+                     <button type="button" onClick={() => fileInputRef.current?.click()} className="mt-1 text-sm text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50" disabled={isSaving || scanLoading}>
                          {receiptFile ? `Selected: ${receiptFile.name}` : 'Choose file...'}
                      </button>
-                     {scanLoading && <p className="text-sm text-blue-600 mt-1">Scanning...</p>}
-                     {scanError && <p className="text-sm text-red-600 mt-1">Scan Error: {scanError}</p>}
+                     {scanLoading && <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Scanning...</p>}
+                     {scanError && <p className="text-sm text-red-600 dark:text-red-400 mt-1">Scan Error: {scanError}</p>}
                  </div>
             </main>
 
-            <footer className="flex items-center justify-between p-3 bg-white border-t text-sm text-gray-600 flex-shrink-0">
-                <button onClick={handleDateSelection} className="flex items-center space-x-1 hover:text-gray-800">
+            <footer className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border-t dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400 flex-shrink-0">
+                <button onClick={handleDateSelection} className="flex items-center space-x-1 hover:text-gray-800 dark:hover:text-gray-200">
                     <CalendarIcon className="h-5 w-5" />
                     <span>{date ? date.toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Select Date'}</span>
                 </button>
-                <span className="flex items-center space-x-1 text-gray-700">
+                <span className="flex items-center space-x-1 text-gray-700 dark:text-gray-300">
                      <UserGroupIcon className="h-5 w-5" />
                      <span>{selectedGroupName}</span>
                 </span>
                 <div className="flex space-x-3">
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="hover:text-gray-800">
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="hover:text-gray-800 dark:hover:text-gray-200">
                         <CameraIcon className="h-5 w-5" />
                     </button>
                 </div>
